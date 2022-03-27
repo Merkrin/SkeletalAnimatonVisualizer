@@ -1,5 +1,11 @@
 package ru.hse.graphics;
 
+import org.joml.Matrix4f;
+import org.lwjgl.system.MemoryStack;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.lwjgl.opengl.GL20.*;
 
 public class ShaderProgram {
@@ -9,10 +15,30 @@ public class ShaderProgram {
 
     private int fragmentShaderId;
 
+    private final Map<String, Integer> uniforms;
+
     public ShaderProgram() throws Exception {
         programId = glCreateProgram();
         if (programId == 0) {
             throw new Exception("Could not create Shader");
+        }
+
+        uniforms = new HashMap<>();
+    }
+
+    public void createUniform(String uniformName) throws Exception {
+        int uniformLocation = glGetUniformLocation(programId, uniformName);
+        if (uniformLocation < 0) {
+            throw new Exception("Could not find uniform:" + uniformName);
+        }
+        uniforms.put(uniformName, uniformLocation);
+    }
+
+    public void setUniform(String uniformName, Matrix4f value) {
+        // Dump the matrix into a float buffer
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            glUniformMatrix4fv(uniforms.get(uniformName), false,
+                    value.get(stack.mallocFloat(16)));
         }
     }
 

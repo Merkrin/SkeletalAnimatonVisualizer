@@ -78,6 +78,16 @@ public class Mesh {
         return vertexCount;
     }
 
+    public void render() {
+        // Draw the mesh
+        glBindVertexArray(getVaoId());
+
+        glDrawElements(GL_TRIANGLES, getVertexCount(), GL_UNSIGNED_INT, 0);
+
+        // Restore state
+        glBindVertexArray(0);
+    }
+
     public void cleanUp() {
         glDisableVertexAttribArray(0);
 

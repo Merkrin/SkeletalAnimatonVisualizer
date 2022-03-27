@@ -3,7 +3,7 @@ package ru.hse.engine;
 import ru.hse.engine.utils.Window;
 
 public interface IGameLogic {
-    void init() throws Exception;
+    void init(Window window) throws Exception;
 
     void input(Window window);
 
