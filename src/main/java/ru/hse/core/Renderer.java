@@ -36,11 +36,10 @@ public class Renderer {
         shaderProgram.createFragmentShader(Utils.loadResource("/shaders/fragment.glsl"));
         shaderProgram.link();
 
-        // Create projection matrix
+        // Create uniforms for world and projection matrices and texture
         shaderProgram.createUniform("projectionMatrix");
         shaderProgram.createUniform("worldMatrix");
-
-        window.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        shaderProgram.createUniform("texture_sampler");
     }
 
     public void clear() {
