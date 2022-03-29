@@ -9,6 +9,7 @@ import ru.hse.engine.IGameLogic;
 import ru.hse.engine.loaders.OBJLoader;
 import ru.hse.engine.utils.MouseInput;
 import ru.hse.engine.utils.Window;
+import ru.hse.graphics.lighting.DirectionalLight;
 import ru.hse.graphics.lighting.PointLight;
 import ru.hse.graphics.model.Material;
 import ru.hse.graphics.model.Mesh;
@@ -33,12 +34,17 @@ public class DummyGame implements IGameLogic {
 
     private PointLight pointLight;
 
+    private DirectionalLight directionalLight;
+
+    private float lightAngle;
+
     private static final float CAMERA_POS_STEP = 0.05f;
 
     public DummyGame() {
         renderer = new Renderer();
         camera = new Camera();
         cameraInc = new Vector3f();
+        lightAngle = -90;
     }
 
     @Override
@@ -64,6 +70,10 @@ public class DummyGame implements IGameLogic {
         pointLight = new PointLight(lightColour, lightPosition, lightIntensity);
         PointLight.Attenuation att = new PointLight.Attenuation(0.0f, 0.0f, 1.0f);
         pointLight.setAttenuation(att);
+
+        lightPosition = new Vector3f(-1, 0, 0);
+        lightColour = new Vector3f(1, 1, 1);
+        directionalLight = new DirectionalLight(lightColour, lightPosition, lightIntensity);
     }
 
     @Override
@@ -105,11 +115,33 @@ public class DummyGame implements IGameLogic {
             Vector2f rotVec = mouseInput.getDisplVec();
             camera.moveRotation(rotVec.x * MOUSE_SENSITIVITY, rotVec.y * MOUSE_SENSITIVITY, 0);
         }
+
+        // Update directional light direction, intensity and colour
+        lightAngle += 1.1f;
+        if (lightAngle > 90) {
+            directionalLight.setIntensity(0);
+            if (lightAngle >= 360) {
+                lightAngle = -90;
+            }
+        } else if (lightAngle <= -80 || lightAngle >= 80) {
+            float factor = 1 - (float) (Math.abs(lightAngle) - 80) / 10.0f;
+            directionalLight.setIntensity(factor);
+            directionalLight.getColor().y = Math.max(factor, 0.9f);
+            directionalLight.getColor().z = Math.max(factor, 0.5f);
+        } else {
+            directionalLight.setIntensity(1);
+            directionalLight.getColor().x = 1;
+            directionalLight.getColor().y = 1;
+            directionalLight.getColor().z = 1;
+        }
+        double angRad = Math.toRadians(lightAngle);
+        directionalLight.getDirection().x = (float) Math.sin(angRad);
+        directionalLight.getDirection().y = (float) Math.cos(angRad);
     }
 
     @Override
     public void render(Window window) {
-        renderer.render(window, camera, gameItems, ambientLight, pointLight);
+        renderer.render(window, camera, gameItems, ambientLight, pointLight, directionalLight);
     }
 
     @Override

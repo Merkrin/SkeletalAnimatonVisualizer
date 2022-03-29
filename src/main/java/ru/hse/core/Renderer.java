@@ -9,6 +9,7 @@ import ru.hse.engine.utils.Utils;
 import ru.hse.engine.utils.Window;
 import ru.hse.graphics.ShaderProgram;
 import ru.hse.graphics.Transformation;
+import ru.hse.graphics.lighting.DirectionalLight;
 import ru.hse.graphics.lighting.PointLight;
 import ru.hse.graphics.model.Mesh;
 
@@ -52,6 +53,7 @@ public class Renderer {
         shaderProgram.createUniform("specularPower");
         shaderProgram.createUniform("ambientLight");
         shaderProgram.createPointLightUniform("pointLight");
+        shaderProgram.createDirectionalLightUniform("directionalLight");
     }
 
     public void clear() {
@@ -59,7 +61,7 @@ public class Renderer {
     }
 
     public void render(Window window, Camera camera, GameItem[] gameItems, Vector3f ambientLight,
-                       PointLight pointLight) {
+                       PointLight pointLight, DirectionalLight directionalLight) {
 
         clear();
 
@@ -89,6 +91,13 @@ public class Renderer {
         lightPos.y = aux.y;
         lightPos.z = aux.z;
         shaderProgram.setUniform("pointLight", currPointLight);
+
+        // Get a copy of the directional light object and transform its position to view coordinates
+        DirectionalLight currDirLight = new DirectionalLight(directionalLight);
+        Vector4f dir = new Vector4f(currDirLight.getDirection(), 0);
+        dir.mul(viewMatrix);
+        currDirLight.setDirection(new Vector3f(dir.x, dir.y, dir.z));
+        shaderProgram.setUniform("directionalLight", currDirLight);
 
         shaderProgram.setUniform("texture_sampler", 0);
         // Render each gameItem
