@@ -4,13 +4,19 @@ import org.joml.Vector3f;
 import ru.hse.graphics.model.Mesh;
 
 public class GameItem {
-    private final Mesh mesh;
+    private Mesh mesh;
 
     private final Vector3f position;
 
     private float scale;
 
     private final Vector3f rotation;
+
+    public GameItem() {
+        position = new Vector3f();
+        scale = 1;
+        rotation = new Vector3f();
+    }
 
     public GameItem(Mesh mesh) {
         this.mesh = mesh;
@@ -45,6 +51,10 @@ public class GameItem {
         this.rotation.x = x;
         this.rotation.y = y;
         this.rotation.z = z;
+    }
+
+    public void setMesh(Mesh mesh){
+        this.mesh = mesh;
     }
 
     public Mesh getMesh() {
