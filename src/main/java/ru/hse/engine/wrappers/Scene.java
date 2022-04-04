@@ -1,29 +1,49 @@
 package ru.hse.engine.wrappers;
 
 import ru.hse.engine.GameItem;
+import ru.hse.graphics.model.Mesh;
 import ru.hse.graphics.skybox.Skybox;
 
-public class Scene {
-    private GameItem[] gameItems;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-    private Skybox skybox;
+public class Scene {
+    private Map<Mesh, List<GameItem>> meshMap;
+
+    private Skybox skyBox;
 
     private SceneLight sceneLight;
 
-    public GameItem[] getGameItems() {
-        return gameItems;
+    public Scene() {
+        meshMap = new HashMap();
+    }
+
+    public Map<Mesh, List<GameItem>> getGameMeshes() {
+        return meshMap;
     }
 
     public void setGameItems(GameItem[] gameItems) {
-        this.gameItems = gameItems;
+        int numGameItems = gameItems != null ? gameItems.length : 0;
+        for (int i=0; i<numGameItems; i++) {
+            GameItem gameItem = gameItems[i];
+            Mesh mesh = gameItem.getMesh();
+            List<GameItem> list = meshMap.get(mesh);
+            if ( list == null ) {
+                list = new ArrayList<>();
+                meshMap.put(mesh, list);
+            }
+            list.add(gameItem);
+        }
     }
 
     public Skybox getSkyBox() {
-        return skybox;
+        return skyBox;
     }
 
     public void setSkyBox(Skybox skyBox) {
-        this.skybox = skyBox;
+        this.skyBox = skyBox;
     }
 
     public SceneLight getSceneLight() {
