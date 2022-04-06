@@ -6,8 +6,10 @@ import org.joml.Vector4f;
 import ru.hse.engine.Camera;
 import ru.hse.engine.GameItem;
 import ru.hse.engine.IGameLogic;
+import ru.hse.engine.animation.AnimGameItem;
 import ru.hse.engine.loaders.Md5Loader;
 import ru.hse.engine.loaders.OBJLoader;
+import ru.hse.engine.loaders.md5.Md5AnimModel;
 import ru.hse.engine.loaders.md5.Md5Model;
 import ru.hse.engine.utils.MouseInput;
 import ru.hse.engine.utils.Window;
@@ -41,6 +43,8 @@ public class DummyGame implements IGameLogic {
 
     private float lightAngle;
 
+    AnimGameItem monster;
+
     private static final float CAMERA_POS_STEP = 0.05f;
 
     public DummyGame() {
@@ -68,7 +72,8 @@ public class DummyGame implements IGameLogic {
 
         // Setup  GameItems
         Md5Model md5Meshodel = Md5Model.parse("/models/monster.md5mesh");
-        GameItem monster = Md5Loader.process(md5Meshodel, new Vector4f(1, 1, 1, 1));
+        Md5AnimModel md5AnimModel = Md5AnimModel.parse("/models/monster.md5anim");
+        monster = Md5Loader.process(md5Meshodel, md5AnimModel, new Vector4f(1, 1, 1, 1));
         monster.setScale(0.05f);
         monster.setRotation(90, 0, 0);
 
@@ -132,6 +137,8 @@ public class DummyGame implements IGameLogic {
             angleInc += 0.05f;
         } else {
             angleInc = 0;
+        }if (window.isKeyPressed(GLFW_KEY_SPACE) ) {
+            monster.nextFrame();
         }
 
         GraphicsUtils.setWireframe(window.isKeyPressed(GLFW_KEY_G));

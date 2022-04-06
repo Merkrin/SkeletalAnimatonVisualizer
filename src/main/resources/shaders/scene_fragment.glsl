@@ -204,7 +204,7 @@ void main()
 
     for (int i=0; i<MAX_POINT_LIGHTS; i++)
     {
-        if (pointLights[i].intensity > 0)
+        if ( pointLights[i].intensity > 0 )
         {
             diffuseSpecularComp += calcPointLight(pointLights[i], mvVertexPos, currNomal);
         }
@@ -212,7 +212,7 @@ void main()
 
     for (int i=0; i<MAX_SPOT_LIGHTS; i++)
     {
-        if (spotLights[i].pl.intensity > 0)
+        if ( spotLights[i].pl.intensity > 0 )
         {
             diffuseSpecularComp += calcSpotLight(spotLights[i], mvVertexPos, currNomal);
         }
@@ -221,7 +221,7 @@ void main()
     float shadow = calcShadow(mlightviewVertexPos);
     fragColor = clamp(ambientC * vec4(ambientLight, 1) + diffuseSpecularComp * shadow, 0, 1);
 
-    if (fog.activeFog == 1)
+    if ( fog.activeFog == 1 )
     {
         fragColor = calcFog(mvVertexPos, fragColor, fog, ambientLight, directionalLight);
     }

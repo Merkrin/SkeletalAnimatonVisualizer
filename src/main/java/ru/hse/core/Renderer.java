@@ -5,6 +5,8 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 import ru.hse.engine.Camera;
 import ru.hse.engine.GameItem;
+import ru.hse.engine.animation.AnimGameItem;
+import ru.hse.engine.animation.AnimatedFrame;
 import ru.hse.engine.utils.Utils;
 import ru.hse.engine.utils.Window;
 import ru.hse.engine.wrappers.Scene;
@@ -13,6 +15,7 @@ import ru.hse.graphics.ShaderProgram;
 import ru.hse.graphics.Transformation;
 import ru.hse.graphics.lighting.DirectionalLight;
 import ru.hse.graphics.lighting.PointLight;
+import ru.hse.graphics.lighting.ShadowMap;
 import ru.hse.graphics.model.Mesh;
 import ru.hse.graphics.skybox.Skybox;
 
@@ -41,6 +44,10 @@ public class Renderer {
 
     private final Transformation transformation;
 
+    private ShadowMap shadowMap;
+
+    private ShaderProgram depthShaderProgram;
+
     private ShaderProgram sceneShaderProgram;
 
     private ShaderProgram skyBoxShaderProgram;
@@ -53,12 +60,17 @@ public class Renderer {
     }
 
     public void init(Window window) throws Exception {
+        shadowMap = new ShadowMap();
+
+        setupDepthShader();
         setupSkyBoxShader();
         setupSceneShader();
     }
 
     public void render(Window window, Camera camera, Scene scene) {
         clear();
+
+        renderDepthMap(window, camera, scene);
 
         glViewport(0, 0, window.getWidth(), window.getHeight());
 
@@ -71,6 +83,16 @@ public class Renderer {
         renderSkyBox(window, camera, scene);
 
         //renderAxes(camera);
+    }
+
+    private void setupDepthShader() throws Exception {
+        depthShaderProgram = new ShaderProgram();
+        depthShaderProgram.createVertexShader(Utils.loadResource("/shaders/depth_vertex.glsl"));
+        depthShaderProgram.createFragmentShader(Utils.loadResource("/shaders/depth_fragment.glsl"));
+        depthShaderProgram.link();
+
+        depthShaderProgram.createUniform("orthoProjectionMatrix");
+        depthShaderProgram.createUniform("modelLightViewMatrix");
     }
 
     private void setupSkyBoxShader() throws Exception {
@@ -108,12 +130,49 @@ public class Renderer {
         sceneShaderProgram.createDirectionalLightUniform("directionalLight");
 
         // Create uniforms for shadow mapping
+        sceneShaderProgram.createUniform("shadowMap");
         sceneShaderProgram.createUniform("orthoProjectionMatrix");
         sceneShaderProgram.createUniform("modelLightViewMatrix");
+
+        // Create uniform for joint matrices
+        sceneShaderProgram.createUniform("jointsMatrix");
     }
 
     public void clear() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+
+    private void renderDepthMap(Window window, Camera camera, Scene scene) {
+        // Setup view port to match the texture size
+        glBindFramebuffer(GL_FRAMEBUFFER, shadowMap.getDepthMapFBO());
+        glViewport(0, 0, ShadowMap.SHADOW_MAP_WIDTH, ShadowMap.SHADOW_MAP_HEIGHT);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        depthShaderProgram.bind();
+
+        DirectionalLight light = scene.getSceneLight().getDirectionalLight();
+        Vector3f lightDirection = light.getDirection();
+
+        float lightAngleX = (float)Math.toDegrees(Math.acos(lightDirection.z));
+        float lightAngleY = (float)Math.toDegrees(Math.asin(lightDirection.x));
+        float lightAngleZ = 0;
+        Matrix4f lightViewMatrix = transformation.updateLightViewMatrix(new Vector3f(lightDirection).mul(light.getShadowPosMult()), new Vector3f(lightAngleX, lightAngleY, lightAngleZ));
+        DirectionalLight.OrthoCoords orthCoords = light.getOrthoCoords();
+        Matrix4f orthoProjMatrix = transformation.updateOrthoProjectionMatrix(orthCoords.left, orthCoords.right, orthCoords.bottom, orthCoords.top, orthCoords.near, orthCoords.far);
+
+        depthShaderProgram.setUniform("orthoProjectionMatrix", orthoProjMatrix);
+        Map<Mesh, List<GameItem>> mapMeshes = scene.getGameMeshes();
+        for (Mesh mesh : mapMeshes.keySet()) {
+            mesh.renderList(mapMeshes.get(mesh), (GameItem gameItem) -> {
+                        Matrix4f modelLightViewMatrix = transformation.buildModelViewMatrix(gameItem, lightViewMatrix);
+                        depthShaderProgram.setUniform("modelLightViewMatrix", modelLightViewMatrix);
+                    }
+            );
+        }
+
+        // Unbind
+        depthShaderProgram.unbind();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     private void renderSkyBox(Window window, Camera camera, Scene scene) {
@@ -155,16 +214,27 @@ public class Renderer {
 
         sceneShaderProgram.setUniform("texture_sampler", 0);
         sceneShaderProgram.setUniform("normalMap", 1);
+        sceneShaderProgram.setUniform("shadowMap", 2);
 
         // Render each mesh with the associated game Items
         Map<Mesh, List<GameItem>> mapMeshes = scene.getGameMeshes();
         for (Mesh mesh : mapMeshes.keySet()) {
+
             sceneShaderProgram.setUniform("material", mesh.getMaterial());
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, shadowMap.getDepthMapTexture().getId());
             mesh.renderList(mapMeshes.get(mesh), (GameItem gameItem) -> {
+
                         Matrix4f modelViewMatrix = transformation.buildModelViewMatrix(gameItem, viewMatrix);
                         sceneShaderProgram.setUniform("modelViewMatrix", modelViewMatrix);
                         Matrix4f modelLightViewMatrix = transformation.buildModelLightViewMatrix(gameItem, lightViewMatrix);
                         sceneShaderProgram.setUniform("modelLightViewMatrix", modelLightViewMatrix);
+
+                        if ( gameItem instanceof AnimGameItem ) {
+                            AnimGameItem animGameItem = (AnimGameItem)gameItem;
+                            AnimatedFrame frame = animGameItem.getCurrentFrame();
+                            sceneShaderProgram.setUniform("jointsMatrix", frame.getJointMatrices());
+                        }
                     }
             );
         }
