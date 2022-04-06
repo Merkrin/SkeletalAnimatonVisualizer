@@ -3,3 +3,5 @@
 .idea
 *.obj
 *.png
+*.md5mesh
+*.md5anim

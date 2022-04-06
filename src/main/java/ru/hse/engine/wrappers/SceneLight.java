@@ -7,6 +7,8 @@ import ru.hse.graphics.lighting.PointLight;
 public class SceneLight {
     private Vector3f ambientLight;
 
+    private Vector3f skyBoxLight;
+
     private PointLight[] pointLightList;
 
     private DirectionalLight directionalLight;
@@ -33,5 +35,13 @@ public class SceneLight {
 
     public void setDirectionalLight(DirectionalLight directionalLight) {
         this.directionalLight = directionalLight;
+    }
+
+    public Vector3f getSkyboxLight() {
+        return skyBoxLight;
+    }
+
+    public void setSkyboxLight(Vector3f skyBoxLight) {
+        this.skyBoxLight = skyBoxLight;
     }
 }

@@ -2,13 +2,15 @@ package ru.hse.core;
 
 import ru.hse.engine.GameEngine;
 import ru.hse.engine.IGameLogic;
+import ru.hse.engine.utils.Window;
 
 public class Main {
     public static void main(String[] args) {
         try {
             boolean vSync = true;
             IGameLogic gameLogic = new DummyGame();
-            GameEngine gameEng = new GameEngine("GAME", 600, 480, vSync, gameLogic);
+            Window.WindowOptions opts = new Window.WindowOptions();
+            GameEngine gameEng = new GameEngine("GAME", vSync, opts, gameLogic);
             gameEng.run();
         } catch (Exception excp) {
             excp.printStackTrace();
