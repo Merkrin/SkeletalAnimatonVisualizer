@@ -18,13 +18,15 @@ import static org.lwjgl.opengl.GL30.*;
 public class Mesh {
     public static final int MAX_WEIGHTS = 4;
 
-    private final int vaoId;
+    protected final int vaoId;
 
-    private final List<Integer> vboIdList;
+    protected final List<Integer> vboIdList;
 
     private final int vertexCount;
 
     private Material material;
+
+    private float boundingRadius;
 
     public Mesh(float[] positions, float[] textCoords, float[] normals, int[] indices) {
         this(positions, textCoords, normals, indices, Mesh.createEmptyIntArray(Mesh.MAX_WEIGHTS * positions.length / 3, 0), Mesh.createEmptyFloatArray(Mesh.MAX_WEIGHTS * positions.length / 3, 0));
@@ -38,6 +40,8 @@ public class Mesh {
         IntBuffer jointIndicesBuffer = null;
         IntBuffer indicesBuffer = null;
         try {
+            calculateBoundingRadius(positions);
+
             vertexCount = indices.length;
             vboIdList = new ArrayList<>();
 
@@ -131,6 +135,15 @@ public class Mesh {
         }
     }
 
+    private void calculateBoundingRadius(float positions[]) {
+        int length = positions.length;
+        boundingRadius = 0;
+        for (int i = 0; i < length; i++) {
+            float pos = positions[i];
+            boundingRadius = Math.max(Math.abs(pos), boundingRadius);
+        }
+    }
+
     public Material getMaterial() {
         return material;
     }
@@ -139,7 +152,7 @@ public class Mesh {
         this.material = material;
     }
 
-    public int getVaoId() {
+    public final int getVaoId() {
         return vaoId;
     }
 
@@ -147,17 +160,25 @@ public class Mesh {
         return vertexCount;
     }
 
-    private void initRender() {
-        Texture texture = material.getTexture();
+    public float getBoundingRadius() {
+        return boundingRadius;
+    }
+
+    public void setBoundingRadius(float boundingRadius) {
+        this.boundingRadius = boundingRadius;
+    }
+
+    protected void initRender() {
+        Texture texture = material != null ? material.getTexture() : null;
         if (texture != null) {
             // Activate first texture bank
             glActiveTexture(GL_TEXTURE0);
             // Bind the texture
             glBindTexture(GL_TEXTURE_2D, texture.getId());
         }
-        Texture normalMap = material.getNormalMap();
+        Texture normalMap = material != null ? material.getNormalMap() : null;
         if (normalMap != null) {
-            // Activate first texture bank
+            // Activate second texture bank
             glActiveTexture(GL_TEXTURE1);
             // Bind the texture
             glBindTexture(GL_TEXTURE_2D, normalMap.getId());
@@ -167,7 +188,7 @@ public class Mesh {
         glBindVertexArray(getVaoId());
     }
 
-    private void endRender() {
+    protected void endRender() {
         // Restore state
         glBindVertexArray(0);
 
@@ -186,10 +207,12 @@ public class Mesh {
         initRender();
 
         for (GameItem gameItem : gameItems) {
-            // Set up data required by GameItem
-            consumer.accept(gameItem);
-            // Render this game item
-            glDrawElements(GL_TRIANGLES, getVertexCount(), GL_UNSIGNED_INT, 0);
+            if (gameItem.isInsideFrustum()) {
+                // Set up data required by GameItem
+                consumer.accept(gameItem);
+                // Render this game item
+                glDrawElements(GL_TRIANGLES, getVertexCount(), GL_UNSIGNED_INT, 0);
+            }
         }
 
         endRender();
@@ -227,13 +250,13 @@ public class Mesh {
         glDeleteVertexArrays(vaoId);
     }
 
-    private static float[] createEmptyFloatArray(int length, float defaultValue) {
+    protected static float[] createEmptyFloatArray(int length, float defaultValue) {
         float[] result = new float[length];
         Arrays.fill(result, defaultValue);
         return result;
     }
 
-    private static int[] createEmptyIntArray(int length, int defaultValue) {
+    protected static int[] createEmptyIntArray(int length, int defaultValue) {
         int[] result = new int[length];
         Arrays.fill(result, defaultValue);
         return result;

@@ -2,12 +2,14 @@
 
 const int MAX_POINT_LIGHTS = 5;
 const int MAX_SPOT_LIGHTS = 5;
+const int NUM_CASCADES = 3;
 
 in vec2 outTexCoord;
 in vec3 mvVertexNormal;
 in vec3 mvVertexPos;
-in vec4 mlightviewVertexPos;
+in vec4 mlightviewVertexPos[NUM_CASCADES];
 in mat4 outModelViewMatrix;
+in float outSelected;
 
 out vec4 fragColor;
 
@@ -60,6 +62,9 @@ struct Fog
 
 uniform sampler2D texture_sampler;
 uniform sampler2D normalMap;
+uniform sampler2D shadowMap_0;
+uniform sampler2D shadowMap_1;
+uniform sampler2D shadowMap_2;
 uniform vec3 ambientLight;
 uniform float specularPower;
 uniform Material material;
@@ -67,7 +72,8 @@ uniform PointLight pointLights[MAX_POINT_LIGHTS];
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 uniform DirectionalLight directionalLight;
 uniform Fog fog;
-uniform sampler2D shadowMap;
+uniform float cascadeFarPlanes[NUM_CASCADES];
+uniform int renderShadow;
 
 vec4 ambientC;
 vec4 diffuseC;
@@ -167,20 +173,49 @@ vec3 calcNormal(Material material, vec3 normal, vec2 text_coord, mat4 modelViewM
     return newNormal;
 }
 
-float calcShadow(vec4 position)
+float calcShadow(vec4 position, int idx)
 {
+    if ( renderShadow == 0 )
+    {
+        return 1.0;
+    }
+
     vec3 projCoords = position.xyz;
     // Transform from screen coordinates to texture coordinates
     projCoords = projCoords * 0.5 + 0.5;
-    float bias = 0.05;
+    float bias = 0.005;
 
     float shadowFactor = 0.0;
-    vec2 inc = 1.0 / textureSize(shadowMap, 0);
+    vec2 inc;
+    if (idx == 0)
+    {
+        inc = 1.0 / textureSize(shadowMap_0, 0);
+    }
+    else if (idx == 1)
+    {
+        inc = 1.0 / textureSize(shadowMap_1, 0);
+    }
+    else
+    {
+        inc = 1.0 / textureSize(shadowMap_2, 0);
+    }
     for(int row = -1; row <= 1; ++row)
     {
         for(int col = -1; col <= 1; ++col)
         {
-            float textDepth = texture(shadowMap, projCoords.xy + vec2(row, col) * inc).r;
+            float textDepth;
+            if (idx == 0)
+            {
+                textDepth = texture(shadowMap_0, projCoords.xy + vec2(row, col) * inc).r;
+            }
+            else if (idx == 1)
+            {
+                textDepth = texture(shadowMap_1, projCoords.xy + vec2(row, col) * inc).r;
+            }
+            else
+            {
+                textDepth = texture(shadowMap_2, projCoords.xy + vec2(row, col) * inc).r;
+            }
             shadowFactor += projCoords.z - bias > textDepth ? 1.0 : 0.0;
         }
     }
@@ -217,12 +252,23 @@ void main()
             diffuseSpecularComp += calcSpotLight(spotLights[i], mvVertexPos, currNomal);
         }
     }
-
-    float shadow = calcShadow(mlightviewVertexPos);
+    int idx;
+    for (int i=0; i<NUM_CASCADES; i++)
+    {
+        if ( abs(mvVertexPos.z) < cascadeFarPlanes[i] )
+        {
+            idx = i;
+            break;
+        }
+    }
+    float shadow = calcShadow(mlightviewVertexPos[idx], idx);
     fragColor = clamp(ambientC * vec4(ambientLight, 1) + diffuseSpecularComp * shadow, 0, 1);
-
     if ( fog.activeFog == 1 )
     {
         fragColor = calcFog(mvVertexPos, fragColor, fog, ambientLight, directionalLight);
+    }
+
+    if ( outSelected > 0 ) {
+        fragColor = vec4(fragColor.x, fragColor.y, 1, 1);
     }
 }

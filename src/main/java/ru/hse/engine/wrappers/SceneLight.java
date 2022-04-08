@@ -37,11 +37,11 @@ public class SceneLight {
         this.directionalLight = directionalLight;
     }
 
-    public Vector3f getSkyboxLight() {
+    public Vector3f getSkyBoxLight() {
         return skyBoxLight;
     }
 
-    public void setSkyboxLight(Vector3f skyBoxLight) {
+    public void setSkyBoxLight(Vector3f skyBoxLight) {
         this.skyBoxLight = skyBoxLight;
     }
 }
