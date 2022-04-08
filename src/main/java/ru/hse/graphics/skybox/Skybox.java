@@ -2,7 +2,6 @@ package ru.hse.graphics.skybox;
 
 import org.joml.Vector4f;
 import ru.hse.engine.GameItem;
-import ru.hse.engine.loaders.OBJLoader;
 import ru.hse.engine.loaders.StaticMeshesLoader;
 import ru.hse.graphics.model.Material;
 import ru.hse.graphics.model.Mesh;

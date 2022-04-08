@@ -1,55 +1,32 @@
 package ru.hse.engine.animation;
 
-import org.joml.Matrix4f;
 import ru.hse.engine.GameItem;
 import ru.hse.graphics.model.Mesh;
 
-import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class AnimGameItem extends GameItem {
-    private int currentFrame;
+    private Map<String, Animation> animations;
 
-    private List<AnimatedFrame> frames;
+    private Animation currentAnimation;
 
-    private List<Matrix4f> invJointMatrices;
-
-    public AnimGameItem(Mesh[] meshes, List<AnimatedFrame> frames, List<Matrix4f> invJointMatrices) {
+    public AnimGameItem(Mesh[] meshes, Map<String, Animation> animations) {
         super(meshes);
-        this.frames = frames;
-        this.invJointMatrices = invJointMatrices;
-        currentFrame = 0;
+        this.animations = animations;
+        Optional<Map.Entry<String, Animation>> entry = animations.entrySet().stream().findFirst();
+        currentAnimation = entry.isPresent() ? entry.get().getValue() : null;
     }
 
-    public List<AnimatedFrame> getFrames() {
-        return frames;
+    public Animation getAnimation(String name) {
+        return animations.get(name);
     }
 
-    public void setFrames(List<AnimatedFrame> frames) {
-        this.frames = frames;
+    public Animation getCurrentAnimation() {
+        return currentAnimation;
     }
 
-    public AnimatedFrame getCurrentFrame() {
-        return this.frames.get(currentFrame);
-    }
-
-    public AnimatedFrame getNextFrame() {
-        int nextFrame = currentFrame + 1;
-        if ( nextFrame > frames.size() - 1) {
-            nextFrame = 0;
-        }
-        return this.frames.get(nextFrame);
-    }
-
-    public void nextFrame() {
-        int nextFrame = currentFrame + 1;
-        if ( nextFrame > frames.size() - 1) {
-            currentFrame = 0;
-        } else {
-            currentFrame = nextFrame;
-        }
-    }
-
-    public List<Matrix4f> getInvJointMatrices() {
-        return invJointMatrices;
+    public void setCurrentAnimation(Animation currentAnimation) {
+        this.currentAnimation = currentAnimation;
     }
 }

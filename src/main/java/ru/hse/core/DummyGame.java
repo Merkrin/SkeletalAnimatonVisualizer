@@ -6,6 +6,9 @@ import org.joml.Vector4f;
 import ru.hse.engine.Camera;
 import ru.hse.engine.GameItem;
 import ru.hse.engine.IGameLogic;
+import ru.hse.engine.animation.AnimGameItem;
+import ru.hse.engine.animation.Animation;
+import ru.hse.engine.loaders.AnimMeshesLoader;
 import ru.hse.engine.loaders.StaticMeshesLoader;
 import ru.hse.engine.utils.MouseInput;
 import ru.hse.engine.utils.Window;
@@ -42,6 +45,10 @@ public class DummyGame implements IGameLogic {
 
     private boolean sceneChanged;
 
+    private Animation animation;
+
+    private AnimGameItem animItem;
+
     public DummyGame() {
         renderer = new Renderer();
         camera = new Camera();
@@ -57,13 +64,12 @@ public class DummyGame implements IGameLogic {
 
         scene = new Scene();
 
-        float reflectance = 1f;
+        animItem = AnimMeshesLoader.loadAnimGameItem("/Users/merkrin/Programming/SkeletalAnimatonVisualizer/src/main/resources/models/bob/boblamp.md5mesh",
+                "/Users/merkrin/Programming/SkeletalAnimatonVisualizer/src/main/resources");
+        animItem.setScale(0.05f);
+        animation = animItem.getCurrentAnimation();
 
-        Mesh[] houseMesh = StaticMeshesLoader.load("/Users/merkrin/Programming/SkeletalAnimatonVisualizer/src/main/resources/models/house/house.obj",
-                "/Users/merkrin/Programming/SkeletalAnimatonVisualizer/src/main/resources/textures/house/");
-        GameItem house = new GameItem(houseMesh);
-
-        scene.setGameItems(new GameItem[]{house});
+        scene.setGameItems(new GameItem[]{animItem});
 
         // Shadows
         scene.setRenderShadows(true);
@@ -134,6 +140,11 @@ public class DummyGame implements IGameLogic {
         } else {
             sceneChanged = true;
             angleInc = 0;
+        }if (window.isKeyPressed(GLFW_KEY_SPACE)) {
+            sceneChanged = true;
+            if (animation != null) {
+                animation.nextFrame();
+            }
         }
 
         GraphicsUtils.setWireframe(window.isKeyPressed(GLFW_KEY_G));
