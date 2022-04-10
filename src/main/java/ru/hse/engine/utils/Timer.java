@@ -1,7 +1,7 @@
 package ru.hse.engine.utils;
 
 public class Timer {
-    private double lastLoopTime;
+    protected double lastLoopTime;
 
     public void init() {
         lastLoopTime = getTime();
