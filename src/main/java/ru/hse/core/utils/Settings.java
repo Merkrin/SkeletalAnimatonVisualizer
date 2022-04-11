@@ -1,5 +1,7 @@
 package ru.hse.core.utils;
 
+import org.joml.Vector2d;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 public class Settings {
@@ -23,6 +25,15 @@ public class Settings {
     private float currentLightAngle = 90f;
 
     private int animationFramesPerSecond = 2;
+
+    private Vector3f cameraPosition = new Vector3f(-20, 20, -20);
+    private Vector3f cameraRotation = new Vector3f(20, 140, 0);
+
+    private int TARGET_FPS = 75;
+
+    private int TARGET_UPS = 30;
+
+    private float specularPower = 10;
 
     public Vector3f getAmbientLight() {
         return ambientLight;
@@ -78,5 +89,45 @@ public class Settings {
 
     public void setAnimationFramesPerSecond(int animationFramesPerSecond) {
         this.animationFramesPerSecond = animationFramesPerSecond;
+    }
+
+    public Vector3f getCameraPosition() {
+        return cameraPosition;
+    }
+
+    public void setCameraPosition(Vector3f cameraPosition) {
+        this.cameraPosition = cameraPosition;
+    }
+
+    public Vector3f getCameraRotation() {
+        return cameraRotation;
+    }
+
+    public void setCameraRotation(Vector3f cameraRotation) {
+        this.cameraRotation = cameraRotation;
+    }
+
+    public int getTARGET_FPS() {
+        return TARGET_FPS;
+    }
+
+    public void setTARGET_FPS(int TARGET_FPS) {
+        this.TARGET_FPS = TARGET_FPS;
+    }
+
+    public int getTARGET_UPS() {
+        return TARGET_UPS;
+    }
+
+    public void setTARGET_UPS(int TARGET_UPS) {
+        this.TARGET_UPS = TARGET_UPS;
+    }
+
+    public float getSpecularPower() {
+        return specularPower;
+    }
+
+    public void setSpecularPower(float specularPower) {
+        this.specularPower = specularPower;
     }
 }

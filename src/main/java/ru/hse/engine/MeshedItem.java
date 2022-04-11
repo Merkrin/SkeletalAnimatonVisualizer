@@ -4,7 +4,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import ru.hse.graphics.model.Mesh;
 
-public class GameItem {
+public class MeshedItem {
     private boolean selected;
 
     private Mesh[] meshes;
@@ -21,7 +21,7 @@ public class GameItem {
 
     private boolean insideFrustum;
 
-    public GameItem() {
+    public MeshedItem() {
         selected = false;
         position = new Vector3f();
         scale = 1;
@@ -31,12 +31,12 @@ public class GameItem {
         disableFrustumCulling = false;
     }
 
-    public GameItem(Mesh mesh) {
+    public MeshedItem(Mesh mesh) {
         this();
         this.meshes = new Mesh[]{mesh};
     }
 
-    public GameItem(Mesh[] meshes) {
+    public MeshedItem(Mesh[] meshes) {
         this();
         this.meshes = meshes;
     }

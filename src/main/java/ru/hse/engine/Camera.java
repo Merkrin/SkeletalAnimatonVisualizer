@@ -1,13 +1,14 @@
 package ru.hse.engine;
 
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import ru.hse.graphics.Transformation;
 
 public class Camera {
-    private final Vector3f position;
+    private Vector3f position;
 
-    private final Vector3f rotation;
+    private Vector3f rotation;
 
     private Matrix4f viewMatrix;
 
@@ -66,5 +67,13 @@ public class Camera {
         rotation.x += offsetX;
         rotation.y += offsetY;
         rotation.z += offsetZ;
+    }
+
+    public void setPosition(Vector3f position){
+        this.position = position;
+    }
+
+    public void setRotation(Vector3f rotation){
+        this.rotation = rotation;
     }
 }

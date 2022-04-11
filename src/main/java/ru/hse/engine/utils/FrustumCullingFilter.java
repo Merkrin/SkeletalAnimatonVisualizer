@@ -3,7 +3,7 @@ package ru.hse.engine.utils;
 import org.joml.FrustumIntersection;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import ru.hse.engine.GameItem;
+import ru.hse.engine.MeshedItem;
 import ru.hse.graphics.model.Mesh;
 
 import java.util.List;
@@ -27,17 +27,17 @@ public class FrustumCullingFilter {
         frustumInt.set(prjViewMatrix);
     }
 
-    public void filter(Map<? extends Mesh, List<GameItem>> mapMesh) {
-        for (Map.Entry<? extends Mesh, List<GameItem>> entry : mapMesh.entrySet()) {
-            List<GameItem> gameItems = entry.getValue();
+    public void filter(Map<? extends Mesh, List<MeshedItem>> mapMesh) {
+        for (Map.Entry<? extends Mesh, List<MeshedItem>> entry : mapMesh.entrySet()) {
+            List<MeshedItem> gameItems = entry.getValue();
             filter(gameItems, entry.getKey().getBoundingRadius());
         }
     }
 
-    public void filter(List<GameItem> gameItems, float meshBoundingRadius) {
+    public void filter(List<MeshedItem> gameItems, float meshBoundingRadius) {
         float boundingRadius;
         Vector3f pos;
-        for (GameItem gameItem : gameItems) {
+        for (MeshedItem gameItem : gameItems) {
             if (!gameItem.isDisableFrustumCulling()) {
                 boundingRadius = gameItem.getScale() * meshBoundingRadius;
                 pos = gameItem.getPosition();

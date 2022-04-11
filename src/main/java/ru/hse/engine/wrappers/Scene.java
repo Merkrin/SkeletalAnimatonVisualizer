@@ -1,6 +1,6 @@
 package ru.hse.engine.wrappers;
 
-import ru.hse.engine.GameItem;
+import ru.hse.engine.MeshedItem;
 import ru.hse.graphics.model.InstancedMesh;
 import ru.hse.graphics.model.Mesh;
 import ru.hse.graphics.skybox.Skybox;
@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Map;
 
 public class Scene {
-    private final Map<Mesh, List<GameItem>> meshMap;
+    private final Map<Mesh, List<MeshedItem>> meshMap;
 
-    private final Map<InstancedMesh, List<GameItem>> instancedMeshMap;
+    private final Map<InstancedMesh, List<MeshedItem>> instancedMeshMap;
 
     private Skybox skyBox;
 
@@ -27,11 +27,11 @@ public class Scene {
         renderShadows = true;
     }
 
-    public Map<Mesh, List<GameItem>> getGameMeshes() {
+    public Map<Mesh, List<MeshedItem>> getGameMeshes() {
         return meshMap;
     }
 
-    public Map<InstancedMesh, List<GameItem>> getGameInstancedMeshes() {
+    public Map<InstancedMesh, List<MeshedItem>> getGameInstancedMeshes() {
         return instancedMeshMap;
     }
 
@@ -39,15 +39,15 @@ public class Scene {
         return renderShadows;
     }
 
-    public void setGameItems(GameItem[] gameItems) {
+    public void setGameItems(MeshedItem[] gameItems) {
         // Create a map of meshes to speed up rendering
         int numGameItems = gameItems != null ? gameItems.length : 0;
         for (int i = 0; i < numGameItems; i++) {
-            GameItem gameItem = gameItems[i];
+            MeshedItem gameItem = gameItems[i];
             Mesh[] meshes = gameItem.getMeshes();
             for (Mesh mesh : meshes) {
                 boolean instancedMesh = mesh instanceof InstancedMesh;
-                List<GameItem> list = instancedMesh ? instancedMeshMap.get(mesh) : meshMap.get(mesh);
+                List<MeshedItem> list = instancedMesh ? instancedMeshMap.get(mesh) : meshMap.get(mesh);
                 if (list == null) {
                     list = new ArrayList<>();
                     if (instancedMesh) {

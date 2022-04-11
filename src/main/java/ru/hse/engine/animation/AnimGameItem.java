@@ -1,12 +1,12 @@
 package ru.hse.engine.animation;
 
-import ru.hse.engine.GameItem;
+import ru.hse.engine.MeshedItem;
 import ru.hse.graphics.model.Mesh;
 
 import java.util.Map;
 import java.util.Optional;
 
-public class AnimGameItem extends GameItem {
+public class AnimGameItem extends MeshedItem {
     private Map<String, Animation> animations;
 
     private Animation currentAnimation;

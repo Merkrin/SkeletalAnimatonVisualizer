@@ -2,7 +2,7 @@ package ru.hse.graphics.model;
 
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
-import ru.hse.engine.GameItem;
+import ru.hse.engine.MeshedItem;
 import ru.hse.graphics.Transformation;
 
 import java.nio.FloatBuffer;
@@ -83,31 +83,31 @@ public class InstancedMesh extends Mesh {
         }
     }
 
-    public void renderListInstanced(List<GameItem> gameItems, Transformation transformation, Matrix4f viewMatrix) {
+    public void renderListInstanced(List<MeshedItem> gameItems, Transformation transformation, Matrix4f viewMatrix) {
         renderListInstanced(gameItems, false, transformation, viewMatrix);
     }
 
-    public void renderListInstanced(List<GameItem> gameItems, boolean billBoard, Transformation transformation, Matrix4f viewMatrix) {
+    public void renderListInstanced(List<MeshedItem> gameItems, boolean billBoard, Transformation transformation, Matrix4f viewMatrix) {
         initRender();
 
         int chunkSize = numInstances;
         int length = gameItems.size();
         for (int i = 0; i < length; i += chunkSize) {
             int end = Math.min(length, i + chunkSize);
-            List<GameItem> subList = gameItems.subList(i, end);
+            List<MeshedItem> subList = gameItems.subList(i, end);
             renderChunkInstanced(subList, billBoard, transformation, viewMatrix);
         }
 
         endRender();
     }
 
-    private void renderChunkInstanced(List<GameItem> gameItems, boolean billBoard, Transformation transformation, Matrix4f viewMatrix) {
+    private void renderChunkInstanced(List<MeshedItem> gameItems, boolean billBoard, Transformation transformation, Matrix4f viewMatrix) {
         this.instanceDataBuffer.clear();
 
         int i = 0;
 
         Texture text = getMaterial().getTexture();
-        for (GameItem gameItem : gameItems) {
+        for (MeshedItem gameItem : gameItems) {
             Matrix4f modelMatrix = transformation.buildModelMatrix(gameItem);
             if (viewMatrix != null && billBoard) {
                 viewMatrix.transpose3x3(modelMatrix);

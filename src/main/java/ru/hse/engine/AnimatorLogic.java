@@ -1,19 +1,17 @@
-package ru.hse.core;
+package ru.hse.engine;
 
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+import ru.hse.core.Renderer;
 import ru.hse.core.utils.Constants;
 import ru.hse.core.utils.Settings;
-import ru.hse.engine.Camera;
-import ru.hse.engine.GameItem;
-import ru.hse.engine.Logic;
 import ru.hse.engine.animation.AnimGameItem;
 import ru.hse.engine.animation.Animation;
 import ru.hse.engine.loaders.AnimMeshesLoader;
 import ru.hse.engine.utils.AnimationTimer;
 import ru.hse.engine.utils.MouseInput;
-import ru.hse.engine.utils.Timer;
+import ru.hse.engine.utils.screenshots.ScreenCapture;
 import ru.hse.engine.utils.Window;
 import ru.hse.engine.wrappers.Scene;
 import ru.hse.engine.wrappers.SceneLight;
@@ -30,11 +28,18 @@ import static org.lwjgl.glfw.GLFW.*;
 public class AnimatorLogic implements Logic {
     private static final Settings SETTINGS = Settings.getInstance();
 
-    private final Vector3f cameraPositionIncrement;
+    private final AnimationTimer timer;
 
     private final Camera camera;
 
     private final Renderer renderer;
+
+    private final ScreenCapture screenCapture;
+
+    private final Vector3f cameraPositionIncrement;
+
+    // seconds for one animation frame
+    private final double timePerAnimationFrame;
 
     private Animation animation;
 
@@ -46,17 +51,14 @@ public class AnimatorLogic implements Logic {
     private boolean isFirstTime;
     private boolean sceneChanged;
 
-    // seconds for one animation frame
-    private double timePerAnimationFrame;
-
-    private final AnimationTimer timer;
-
     public AnimatorLogic() {
         cameraPositionIncrement = new Vector3f(0.0f, 0.0f, 0.0f);
 
         camera = new Camera();
 
         renderer = new Renderer();
+
+        screenCapture = new ScreenCapture();
 
         lightAngleIncrement = 0;
         currentLightAngle = SETTINGS.getCurrentLightAngle();
@@ -83,7 +85,7 @@ public class AnimatorLogic implements Logic {
         //                "/Users/merkrin/Programming/SkeletalAnimatonVisualizer/src/main/resources/textures/house/");
         //        GameItem house = new GameItem(houseMesh);
 
-        scene.setGameItems(new GameItem[]{animatedItem});
+        scene.setGameItems(new MeshedItem[]{animatedItem});
 
         // Shadows
         scene.setRenderShadows(true);
@@ -98,11 +100,10 @@ public class AnimatorLogic implements Logic {
         // Setup Lights
         setupLights();
 
-        camera.getPosition().x = -17.0f;
-        camera.getPosition().y = 17.0f;
-        camera.getPosition().z = -30.0f;
-        camera.getRotation().x = 20.0f;
-        camera.getRotation().y = 140.f;
+        camera.setPosition(SETTINGS.getCameraPosition());
+        camera.setRotation(SETTINGS.getCameraRotation());
+
+        screenCapture.initialize(window);
 
         timer.init();
     }
@@ -178,7 +179,9 @@ public class AnimatorLogic implements Logic {
 
                 animation.nextFrame();
             }
-
+        }
+        if(window.isKeyPressed(GLFW_KEY_P)){
+            screenCapture.run();
         }
 
         GraphicsUtils.setWireframe(window.isKeyPressed(GLFW_KEY_G));
@@ -227,6 +230,7 @@ public class AnimatorLogic implements Logic {
     public void render(Window window) {
         if (isFirstTime) {
             sceneChanged = true;
+
             isFirstTime = false;
         }
 
@@ -237,7 +241,7 @@ public class AnimatorLogic implements Logic {
     public void cleanup() {
         renderer.cleanup();
 
-        Map<Mesh, List<GameItem>> mapMeshes = scene.getGameMeshes();
+        Map<Mesh, List<MeshedItem>> mapMeshes = scene.getGameMeshes();
 
         for (Mesh mesh : mapMeshes.keySet())
             mesh.cleanUp();

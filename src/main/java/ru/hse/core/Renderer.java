@@ -3,8 +3,9 @@ package ru.hse.core;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+import ru.hse.core.utils.Settings;
 import ru.hse.engine.Camera;
-import ru.hse.engine.GameItem;
+import ru.hse.engine.MeshedItem;
 import ru.hse.engine.animation.AnimGameItem;
 import ru.hse.engine.animation.AnimatedFrame;
 import ru.hse.engine.shadows.ShadowCascade;
@@ -29,34 +30,35 @@ import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE2;
+import static ru.hse.core.utils.Constants.MAX_POINT_LIGHTS;
+import static ru.hse.core.utils.Constants.MAX_SPOT_LIGHTS;
 
 public class Renderer {
-    private static final int MAX_POINT_LIGHTS = 5;
+    private static final Settings SETTINGS = Settings.getInstance();
 
-    private static final int MAX_SPOT_LIGHTS = 5;
-
-    private final Transformation transformation;
-
-    private final ShadowRenderer shadowRenderer;
-
-    private ShaderProgram sceneShaderProgram;
-
-    private ShaderProgram skyBoxShaderProgram;
-
-    private ShaderProgram particlesShaderProgram;
-
-    private final float specularPower;
+    private final List<MeshedItem> filteredItems;
 
     private final FrustumCullingFilter frustumFilter;
 
-    private final List<GameItem> filteredItems;
+    private ShaderProgram sceneShaderProgram;
+    private ShaderProgram skyBoxShaderProgram;
+
+    private final ShadowRenderer shadowRenderer;
+
+    private final Transformation transformation;
+
+    private final float specularPower;
 
     public Renderer() {
-        transformation = new Transformation();
-        specularPower = 10f;
-        shadowRenderer = new ShadowRenderer();
         frustumFilter = new FrustumCullingFilter();
+
+        transformation = new Transformation();
+
+        shadowRenderer = new ShadowRenderer();
+
         filteredItems = new ArrayList<>();
+
+        specularPower = SETTINGS.getSpecularPower();
     }
 
     public void init(Window window) throws Exception {
@@ -75,9 +77,8 @@ public class Renderer {
         }
 
         // Render depth map before view ports has been set up
-        if (scene.isRenderShadows() && sceneChanged) {
+        if (scene.isRenderShadows() && sceneChanged)
             shadowRenderer.render(window, scene, camera, transformation, this);
-        }
 
         glViewport(0, 0, window.getWidth(), window.getHeight());
 
@@ -86,9 +87,6 @@ public class Renderer {
 
         renderScene(window, camera, scene);
         renderSkyBox(window, camera, scene);
-
-        //renderAxes(camera);
-        renderCrossHair(window);
     }
 
     private void setupSkyBoxShader() throws Exception {
@@ -222,7 +220,7 @@ public class Renderer {
         sceneShaderProgram.setUniform("isInstanced", 0);
 
         // Render each mesh with the associated game Items
-        Map<Mesh, List<GameItem>> mapMeshes = scene.getGameMeshes();
+        Map<Mesh, List<MeshedItem>> mapMeshes = scene.getGameMeshes();
         for (Mesh mesh : mapMeshes.keySet()) {
             sceneShaderProgram.setUniform("material", mesh.getMaterial());
 
@@ -234,7 +232,7 @@ public class Renderer {
 
             shadowRenderer.bindTextures(GL_TEXTURE2);
 
-            mesh.renderList(mapMeshes.get(mesh), (GameItem gameItem) -> {
+            mesh.renderList(mapMeshes.get(mesh), (MeshedItem gameItem) -> {
                         sceneShaderProgram.setUniform("selectedNonInstanced", gameItem.isSelected() ? 1.0f : 0.0f);
                         Matrix4f modelMatrix = transformation.buildModelMatrix(gameItem);
                         sceneShaderProgram.setUniform("modelNonInstancedMatrix", modelMatrix);
@@ -252,7 +250,7 @@ public class Renderer {
         sceneShaderProgram.setUniform("isInstanced", 1);
 
         // Render each mesh with the associated game Items
-        Map<InstancedMesh, List<GameItem>> mapMeshes = scene.getGameInstancedMeshes();
+        Map<InstancedMesh, List<MeshedItem>> mapMeshes = scene.getGameInstancedMeshes();
         for (InstancedMesh mesh : mapMeshes.keySet()) {
             Texture text = mesh.getMaterial().getTexture();
             if (text != null) {
@@ -263,7 +261,7 @@ public class Renderer {
             sceneShaderProgram.setUniform("material", mesh.getMaterial());
 
             filteredItems.clear();
-            for (GameItem gameItem : mapMeshes.get(mesh)) {
+            for (MeshedItem gameItem : mapMeshes.get(mesh)) {
                 if (gameItem.isInsideFrustum()) {
                     filteredItems.add(gameItem);
                 }
@@ -302,33 +300,6 @@ public class Renderer {
         sceneShaderProgram.setUniform("directionalLight", currDirLight);
     }
 
-    private void renderCrossHair(Window window) {
-        if (window.getWindowOptions().compatibleProfile) {
-            glPushMatrix();
-            glLoadIdentity();
-
-            float inc = 0.05f;
-            glLineWidth(2.0f);
-
-            glBegin(GL_LINES);
-
-            glColor3f(1.0f, 1.0f, 1.0f);
-
-            // Horizontal line
-            glVertex3f(-inc, 0.0f, 0.0f);
-            glVertex3f(+inc, 0.0f, 0.0f);
-            glEnd();
-
-            // Vertical line
-            glBegin(GL_LINES);
-            glVertex3f(0.0f, -inc, 0.0f);
-            glVertex3f(0.0f, +inc, 0.0f);
-            glEnd();
-
-            glPopMatrix();
-        }
-    }
-
     public void cleanup() {
         if (shadowRenderer != null) {
             shadowRenderer.cleanup();
@@ -338,9 +309,6 @@ public class Renderer {
         }
         if (sceneShaderProgram != null) {
             sceneShaderProgram.cleanup();
-        }
-        if (particlesShaderProgram != null) {
-            particlesShaderProgram.cleanup();
         }
     }
 }

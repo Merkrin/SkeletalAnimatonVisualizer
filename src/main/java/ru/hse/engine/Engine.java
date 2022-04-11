@@ -1,10 +1,13 @@
 package ru.hse.engine;
 
+import ru.hse.core.utils.Settings;
 import ru.hse.engine.utils.MouseInput;
 import ru.hse.engine.utils.Timer;
 import ru.hse.engine.utils.Window;
 
-public class GameEngine implements Runnable{
+public class Engine implements Runnable{
+    private static final Settings SETTINGS = Settings.getInstance();
+
     public static final int TARGET_FPS = 75;
 
     public static final int TARGET_UPS = 30;
@@ -17,11 +20,11 @@ public class GameEngine implements Runnable{
 
     private final MouseInput mouseInput;
 
-    public GameEngine(String windowTitle, boolean vSync, Window.WindowOptions opts, Logic gameLogic) throws Exception {
+    public Engine(String windowTitle, boolean vSync, Window.WindowOptions opts, Logic gameLogic) throws Exception {
         this(windowTitle, 0, 0, vSync, opts, gameLogic);
     }
 
-    public GameEngine(String windowTitle, int width, int height, boolean vSync, Window.WindowOptions opts, Logic gameLogic) throws Exception {
+    public Engine(String windowTitle, int width, int height, boolean vSync, Window.WindowOptions opts, Logic gameLogic) throws Exception {
         window = new Window(windowTitle, width, height, vSync, opts);
         mouseInput = new MouseInput();
         this.gameLogic = gameLogic;

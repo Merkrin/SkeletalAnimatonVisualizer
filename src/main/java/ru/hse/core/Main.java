@@ -1,6 +1,7 @@
 package ru.hse.core;
 
-import ru.hse.engine.GameEngine;
+import ru.hse.engine.AnimatorLogic;
+import ru.hse.engine.Engine;
 import ru.hse.engine.Logic;
 import ru.hse.engine.utils.Window;
 
@@ -8,9 +9,12 @@ public class Main {
     public static void main(String[] args) {
         try {
             boolean vSync = true;
-            Logic gameLogic = new AnimatorLogic();
+
+            Logic animatorLogic = new AnimatorLogic();
+
             Window.WindowOptions opts = new Window.WindowOptions();
-            GameEngine gameEng = new GameEngine("GAME", vSync, opts, gameLogic);
+
+            Engine gameEng = new Engine("GAME", vSync, opts, animatorLogic);
             gameEng.run();
         } catch (Exception excp) {
             excp.printStackTrace();

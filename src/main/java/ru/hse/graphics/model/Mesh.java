@@ -1,8 +1,7 @@
 package ru.hse.graphics.model;
 
-import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
-import ru.hse.engine.GameItem;
+import ru.hse.engine.MeshedItem;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -203,10 +202,10 @@ public class Mesh {
         endRender();
     }
 
-    public void renderList(List<GameItem> gameItems, Consumer<GameItem> consumer) {
+    public void renderList(List<MeshedItem> gameItems, Consumer<MeshedItem> consumer) {
         initRender();
 
-        for (GameItem gameItem : gameItems) {
+        for (MeshedItem gameItem : gameItems) {
             if (gameItem.isInsideFrustum()) {
                 // Set up data required by GameItem
                 consumer.accept(gameItem);
