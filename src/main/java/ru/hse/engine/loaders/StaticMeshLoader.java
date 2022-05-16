@@ -15,7 +15,7 @@ import java.util.List;
 
 import static org.lwjgl.assimp.Assimp.*;
 
-public class StaticMeshesLoader {
+public class StaticMeshLoader {
     public static Mesh[] load(String resourcePath, String texturesDir) throws Exception {
         return load(resourcePath, texturesDir,
                 aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices | aiProcess_Triangulate
@@ -72,7 +72,7 @@ public class StaticMeshesLoader {
         if (textPath != null && textPath.length() > 0) {
             TextureCache textCache = TextureCache.getInstance();
             String textureFile = "";
-            if ( texturesDir != null && texturesDir.length() > 0 ) {
+            if (texturesDir != null && texturesDir.length() > 0) {
                 textureFile += texturesDir + "/";
             }
             textureFile += textPath;
@@ -118,9 +118,9 @@ public class StaticMeshesLoader {
         processIndices(aiMesh, indices);
 
         // Texture coordinates may not have been populated. We need at least the empty slots
-        if ( textures.size() == 0) {
+        if (textures.size() == 0) {
             int numElements = (vertices.size() / 3) * 2;
-            for (int i=0; i<numElements; i++) {
+            for (int i = 0; i < numElements; i++) {
                 textures.add(0.0f);
             }
         }

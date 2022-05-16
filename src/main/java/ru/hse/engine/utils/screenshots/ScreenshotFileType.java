@@ -8,7 +8,7 @@ public enum ScreenshotFileType {
     public final String fileExtension;
     public final String fileType;
 
-    private ScreenshotFileType(String fileExtension, String fileType){
+    ScreenshotFileType(String fileExtension, String fileType) {
         this.fileExtension = fileExtension;
         this.fileType = fileType;
     }

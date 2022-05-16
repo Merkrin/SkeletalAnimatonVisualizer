@@ -3,6 +3,7 @@ package ru.hse.engine.utils.screenshots;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import ru.hse.core.utils.Constants;
+import ru.hse.core.utils.Settings;
 import ru.hse.engine.utils.Window;
 
 import javax.imageio.ImageIO;
@@ -13,13 +14,15 @@ import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import static ru.hse.engine.utils.screenshots.ScreenshotFileType.PNG;
+import static ru.hse.engine.utils.screenshots.ScreenshotFileType.*;
 
 public class ScreenCapture implements Runnable {
+    private static final Settings SETTINGS = Settings.getInstance();
+
     private int windowWidth;
     private int windowHeight;
 
-    public void initialize(Window window){
+    public void initialize(Window window) {
         windowWidth = window.getWidth();
         windowHeight = window.getHeight();
     }
@@ -39,8 +42,11 @@ public class ScreenCapture implements Runnable {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern(Constants.SCREENSHOT_FILENAME_PATTERN);
         LocalDateTime now = LocalDateTime.now();
 
-        File file = new File(dtf.format(now) + PNG.fileExtension);
-        String format = PNG.fileType;
+        ScreenshotFileType fileType = SETTINGS.getScreenshotType() == 1 ? PNG :
+                (SETTINGS.getScreenshotType() == 2 ? JPG : BMP);
+
+        File file = new File(dtf.format(now) + fileType.fileExtension);
+        String format = fileType.fileType;
         BufferedImage image = new BufferedImage(windowWidth, windowHeight, BufferedImage.TYPE_INT_RGB);
 
         for (int x = 0; x < windowWidth; x++) {

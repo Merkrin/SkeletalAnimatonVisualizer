@@ -1,14 +1,14 @@
 package ru.hse.engine.utils;
 
-public class AnimationTimer extends Timer{
+public class AnimationTimer extends Timer {
     @Override
-    public float getElapsedTime(){
+    public float getElapsedTime() {
         double time = getTime();
 
         return (float) (time - lastLoopTime);
     }
 
-    public void updateLastLoopTime(){
+    public void updateLastLoopTime() {
         lastLoopTime = getTime();
     }
 }

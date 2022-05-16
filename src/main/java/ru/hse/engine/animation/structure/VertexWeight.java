@@ -1,7 +1,7 @@
 package ru.hse.engine.animation.structure;
 
 public class VertexWeight {
-    private int boneId;
+    private final int boneId;
 
     private int vertexId;
 

@@ -181,9 +181,9 @@ public class Window {
         return projectionMatrix;
     }
 
-    public Matrix4f updateProjectionMatrix() {
+    public void updateProjectionMatrix() {
         float aspectRatio = (float) width / (float) height;
-        return projectionMatrix.setPerspective(FOV, aspectRatio, Z_NEAR, Z_FAR);
+        projectionMatrix.setPerspective(FOV, aspectRatio, Z_NEAR, Z_FAR);
     }
 
     public static Matrix4f updateProjectionMatrix(Matrix4f matrix, int width, int height) {
@@ -245,8 +245,6 @@ public class Window {
         public boolean cullFace;
 
         public boolean showTriangles;
-
-        public boolean showFps;
 
         public boolean compatibleProfile;
 

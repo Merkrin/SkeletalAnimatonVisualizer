@@ -6,7 +6,7 @@ import static org.lwjgl.opengl.GL11.GL_DEPTH_COMPONENT;
 import static org.lwjgl.opengl.GL30.*;
 
 public class ShadowBuffer {
-    public static final int SHADOW_MAP_WIDTH = (int)Math.pow(65, 2);
+    public static final int SHADOW_MAP_WIDTH = (int) Math.pow(65, 2);
 
     public static final int SHADOW_MAP_HEIGHT = SHADOW_MAP_WIDTH;
 
@@ -15,13 +15,13 @@ public class ShadowBuffer {
     private final ArrTexture depthMap;
 
     public ShadowBuffer() throws Exception {
-        // Create a FBO to render the depth map
+        // Create an FBO to render the depth map
         depthMapFBO = glGenFramebuffers();
 
         // Create the depth map textures
         depthMap = new ArrTexture(ShadowRenderer.NUM_CASCADES, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT, GL_DEPTH_COMPONENT);
 
-        // Attach the the depth map texture to the FBO
+        // Attach the depth map texture to the FBO
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap.getIds()[0], 0);
 

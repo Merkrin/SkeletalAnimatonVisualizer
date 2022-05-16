@@ -8,7 +8,7 @@ import ru.hse.core.utils.Constants;
 import ru.hse.core.utils.Settings;
 import ru.hse.engine.animation.AnimGameItem;
 import ru.hse.engine.animation.Animation;
-import ru.hse.engine.loaders.AnimMeshesLoader;
+import ru.hse.engine.loaders.AnimatedMeshLoader;
 import ru.hse.engine.utils.AnimationTimer;
 import ru.hse.engine.utils.MouseInput;
 import ru.hse.engine.utils.screenshots.ScreenCapture;
@@ -76,7 +76,7 @@ public class AnimatorLogic implements Logic {
 
         scene = new Scene();
 
-        AnimGameItem animatedItem = AnimMeshesLoader.loadAnimGameItem("/Users/merkrin/Programming/SkeletalAnimatonVisualizer/src/main/resources/models/boy.dae",
+        AnimGameItem animatedItem = AnimatedMeshLoader.loadAnimGameItem("/Users/merkrin/Programming/SkeletalAnimatonVisualizer/src/main/resources/models/boy.dae",
                 "/Users/merkrin/Programming/SkeletalAnimatonVisualizer/src/main/resources/textures");
         animatedItem.setScale(0.05f);
         animation = animatedItem.getCurrentAnimation();
@@ -191,7 +191,7 @@ public class AnimatorLogic implements Logic {
     public void update(float interval, MouseInput mouseInput) {
         if (mouseInput.isRightButtonPressed()) {
             // Update camera based on mouse
-            Vector2f rotationVector = mouseInput.getDisplVec();
+            Vector2f rotationVector = mouseInput.getDisplacementVector();
 
             camera.moveRotation(rotationVector.x * Constants.MOUSE_SENSITIVITY,
                     rotationVector.y * Constants.MOUSE_SENSITIVITY,

@@ -1,18 +1,17 @@
 package ru.hse.engine.animation;
 
 import org.joml.Matrix4f;
+import ru.hse.core.utils.Constants;
 
 import java.util.Arrays;
 
 public class AnimatedFrame {
     private static final Matrix4f IDENTITY_MATRIX = new Matrix4f();
 
-    public static final int MAX_JOINTS = 150;
-
     private final Matrix4f[] jointMatrices;
 
     public AnimatedFrame() {
-        jointMatrices = new Matrix4f[MAX_JOINTS];
+        jointMatrices = new Matrix4f[Constants.MAXIMAL_JOINTS_AMOUNT];
         Arrays.fill(jointMatrices, IDENTITY_MATRIX);
     }
 

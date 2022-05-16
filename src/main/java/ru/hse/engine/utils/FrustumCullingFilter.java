@@ -10,21 +10,20 @@ import java.util.List;
 import java.util.Map;
 
 public class FrustumCullingFilter {
-    private final Matrix4f prjViewMatrix;
+    private final Matrix4f projectionViewMatrix;
 
-    private final FrustumIntersection frustumInt;
+    private final FrustumIntersection frustumIntersection;
 
     public FrustumCullingFilter() {
-        prjViewMatrix = new Matrix4f();
-        frustumInt = new FrustumIntersection();
+        projectionViewMatrix = new Matrix4f();
+        frustumIntersection = new FrustumIntersection();
     }
 
-    public void updateFrustum(Matrix4f projMatrix, Matrix4f viewMatrix) {
-        // Calculate projection view matrix
-        prjViewMatrix.set(projMatrix);
-        prjViewMatrix.mul(viewMatrix);
-        // Update frustum intersection class
-        frustumInt.set(prjViewMatrix);
+    public void updateFrustum(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
+        projectionViewMatrix.set(projectionMatrix);
+        projectionViewMatrix.mul(viewMatrix);
+
+        frustumIntersection.set(projectionViewMatrix);
     }
 
     public void filter(Map<? extends Mesh, List<MeshedItem>> mapMesh) {
@@ -34,19 +33,20 @@ public class FrustumCullingFilter {
         }
     }
 
-    public void filter(List<MeshedItem> gameItems, float meshBoundingRadius) {
+    public void filter(List<MeshedItem> meshedItems, float meshBoundingRadius) {
         float boundingRadius;
-        Vector3f pos;
-        for (MeshedItem gameItem : gameItems) {
+        Vector3f position;
+
+        for (MeshedItem gameItem : meshedItems) {
             if (!gameItem.isDisableFrustumCulling()) {
                 boundingRadius = gameItem.getScale() * meshBoundingRadius;
-                pos = gameItem.getPosition();
-                gameItem.setInsideFrustum(insideFrustum(pos.x, pos.y, pos.z, boundingRadius));
+                position = gameItem.getPosition();
+                gameItem.setInsideFrustum(insideFrustum(position.x, position.y, position.z, boundingRadius));
             }
         }
     }
 
     public boolean insideFrustum(float x0, float y0, float z0, float boundingRadius) {
-        return frustumInt.testSphere(x0, y0, z0, boundingRadius);
+        return frustumIntersection.testSphere(x0, y0, z0, boundingRadius);
     }
 }

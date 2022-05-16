@@ -51,7 +51,7 @@ public class Scene {
                 if (list == null) {
                     list = new ArrayList<>();
                     if (instancedMesh) {
-                        instancedMeshMap.put((InstancedMesh)mesh, list);
+                        instancedMeshMap.put((InstancedMesh) mesh, list);
                     } else {
                         meshMap.put(mesh, list);
                     }

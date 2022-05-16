@@ -5,11 +5,11 @@ import java.util.List;
 public class Animation {
     private int currentFrame;
 
-    private List<AnimatedFrame> frames;
+    private final List<AnimatedFrame> frames;
 
-    private String name;
+    private final String name;
 
-    private double duration;
+    private final double duration;
 
     public Animation(String name, List<AnimatedFrame> frames, double duration) {
         this.name = name;

@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class AnimGameItem extends MeshedItem {
-    private Map<String, Animation> animations;
+    private final Map<String, Animation> animations;
 
     private Animation currentAnimation;
 
@@ -15,7 +15,7 @@ public class AnimGameItem extends MeshedItem {
         super(meshes);
         this.animations = animations;
         Optional<Map.Entry<String, Animation>> entry = animations.entrySet().stream().findFirst();
-        currentAnimation = entry.isPresent() ? entry.get().getValue() : null;
+        currentAnimation = entry.map(Map.Entry::getValue).orElse(null);
     }
 
     public Animation getAnimation(String name) {

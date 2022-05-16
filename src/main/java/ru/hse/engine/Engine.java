@@ -91,7 +91,7 @@ public class Engine implements Runnable{
     }
 
     protected void input() {
-        mouseInput.input(window);
+        mouseInput.input();
         gameLogic.input(window, mouseInput);
     }
 

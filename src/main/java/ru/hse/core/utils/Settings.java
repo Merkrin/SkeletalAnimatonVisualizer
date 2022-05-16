@@ -1,7 +1,5 @@
 package ru.hse.core.utils;
 
-import org.joml.Vector2d;
-import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 public class Settings {
@@ -34,6 +32,10 @@ public class Settings {
     private int TARGET_UPS = 30;
 
     private float specularPower = 10;
+
+    private boolean isVSyncEnabled = true;
+
+    private int screenshotType = 1;
 
     public Vector3f getAmbientLight() {
         return ambientLight;
@@ -129,5 +131,21 @@ public class Settings {
 
     public void setSpecularPower(float specularPower) {
         this.specularPower = specularPower;
+    }
+
+    public boolean isVSyncEnabled() {
+        return isVSyncEnabled;
+    }
+
+    public void setVSyncEnabled(boolean VSyncEnabled) {
+        isVSyncEnabled = VSyncEnabled;
+    }
+
+    public int getScreenshotType() {
+        return screenshotType;
+    }
+
+    public void setScreenshotType(int screenshotType) {
+        this.screenshotType = screenshotType;
     }
 }
