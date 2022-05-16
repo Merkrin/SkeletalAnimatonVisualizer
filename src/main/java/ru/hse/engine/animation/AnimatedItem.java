@@ -6,12 +6,12 @@ import ru.hse.graphics.model.Mesh;
 import java.util.Map;
 import java.util.Optional;
 
-public class AnimGameItem extends MeshedItem {
+public class AnimatedItem extends MeshedItem {
     private final Map<String, Animation> animations;
 
     private Animation currentAnimation;
 
-    public AnimGameItem(Mesh[] meshes, Map<String, Animation> animations) {
+    public AnimatedItem(Mesh[] meshes, Map<String, Animation> animations) {
         super(meshes);
         this.animations = animations;
         Optional<Map.Entry<String, Animation>> entry = animations.entrySet().stream().findFirst();

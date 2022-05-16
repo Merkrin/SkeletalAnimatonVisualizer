@@ -4,7 +4,7 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.assimp.*;
-import ru.hse.engine.animation.AnimGameItem;
+import ru.hse.engine.animation.AnimatedItem;
 import ru.hse.engine.animation.AnimatedFrame;
 import ru.hse.engine.animation.Animation;
 import ru.hse.engine.animation.structure.Bone;
@@ -23,13 +23,13 @@ import java.util.stream.Collectors;
 import static org.lwjgl.assimp.Assimp.*;
 
 public class AnimatedMeshLoader extends StaticMeshLoader {
-    public static AnimGameItem loadAnimGameItem(String resourcePath, String texturesDir) throws Exception {
+    public static AnimatedItem loadAnimGameItem(String resourcePath, String texturesDir) throws Exception {
         return loadAnimGameItem(resourcePath, texturesDir,
                 aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices | aiProcess_Triangulate
                         | aiProcess_FixInfacingNormals | aiProcess_LimitBoneWeights);
     }
 
-    public static AnimGameItem loadAnimGameItem(String resourcePath, String texturesDir, int flags)
+    public static AnimatedItem loadAnimGameItem(String resourcePath, String texturesDir, int flags)
             throws Exception {
         AIScene aiScene = aiImportFile(resourcePath, flags);
         if (aiScene == null) {
@@ -59,7 +59,7 @@ public class AnimatedMeshLoader extends StaticMeshLoader {
         Map<String, Animation> animations = processAnimations(aiScene, boneList, rootNode,
                 globalInverseTransformation);
 
-        return new AnimGameItem(meshes, animations);
+        return new AnimatedItem(meshes, animations);
     }
 
     private static Node buildNodesTree(AINode aiNode, Node parentNode) {

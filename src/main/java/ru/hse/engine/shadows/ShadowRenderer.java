@@ -5,7 +5,7 @@ import ru.hse.core.Renderer;
 import ru.hse.core.utils.Constants;
 import ru.hse.engine.Camera;
 import ru.hse.engine.MeshedItem;
-import ru.hse.engine.animation.AnimGameItem;
+import ru.hse.engine.animation.AnimatedItem;
 import ru.hse.engine.animation.AnimatedFrame;
 import ru.hse.engine.utils.Utils;
 import ru.hse.engine.utils.Window;
@@ -119,9 +119,9 @@ public class ShadowRenderer {
             mesh.renderList(mapMeshes.get(mesh), (MeshedItem gameItem) -> {
                         Matrix4f modelMatrix = transformation.buildModelMatrix(gameItem);
                         depthShaderProgram.setUniform("modelNonInstancedMatrix", modelMatrix);
-                        if (gameItem instanceof AnimGameItem) {
-                            AnimGameItem animGameItem = (AnimGameItem) gameItem;
-                            AnimatedFrame frame = animGameItem.getCurrentAnimation().getCurrentFrame();
+                        if (gameItem instanceof AnimatedItem) {
+                            AnimatedItem animatedItem = (AnimatedItem) gameItem;
+                            AnimatedFrame frame = animatedItem.getCurrentAnimation().getCurrentFrame();
                             depthShaderProgram.setUniform("jointsMatrix", frame.getJointMatrices());
                         }
                     }

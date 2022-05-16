@@ -2,13 +2,14 @@ package ru.hse.engine;
 
 import org.joml.Vector2f;
 import org.joml.Vector3f;
-import org.joml.Vector4f;
 import ru.hse.core.Renderer;
+import ru.hse.core.utils.ArgumentsParser;
 import ru.hse.core.utils.Constants;
 import ru.hse.core.utils.Settings;
-import ru.hse.engine.animation.AnimGameItem;
+import ru.hse.engine.animation.AnimatedItem;
 import ru.hse.engine.animation.Animation;
 import ru.hse.engine.loaders.AnimatedMeshLoader;
+import ru.hse.engine.loaders.StaticMeshLoader;
 import ru.hse.engine.utils.AnimationTimer;
 import ru.hse.engine.utils.MouseInput;
 import ru.hse.engine.utils.screenshots.ScreenCapture;
@@ -20,6 +21,12 @@ import ru.hse.graphics.model.Mesh;
 import ru.hse.graphics.skybox.Skybox;
 import ru.hse.graphics.utils.GraphicsUtils;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -76,28 +83,26 @@ public class AnimatorLogic implements Logic {
 
         scene = new Scene();
 
-        AnimGameItem animatedItem = AnimatedMeshLoader.loadAnimGameItem("/Users/merkrin/Programming/SkeletalAnimatonVisualizer/src/main/resources/models/boy.dae",
-                "/Users/merkrin/Programming/SkeletalAnimatonVisualizer/src/main/resources/textures");
-        animatedItem.setScale(0.05f);
-        animation = animatedItem.getCurrentAnimation();
+        MeshedItem item;
 
-        // Mesh[] houseMesh = StaticMeshesLoader.load("/Users/merkrin/Programming/SkeletalAnimatonVisualizer/src/main/resources/models/house/house.obj",
-        //                "/Users/merkrin/Programming/SkeletalAnimatonVisualizer/src/main/resources/textures/house/");
-        //        GameItem house = new GameItem(houseMesh);
+        if (SETTINGS.isModelAnimated()) {
+            item = AnimatedMeshLoader.loadAnimGameItem(SETTINGS.getPathToModel(), SETTINGS.getPathToTexture());
 
-        scene.setGameItems(new MeshedItem[]{animatedItem});
+            animation = ((AnimatedItem) item).getCurrentAnimation();
+        } else {
+            item = new MeshedItem(StaticMeshLoader.load(SETTINGS.getPathToModel(), SETTINGS.getPathToTexture()));
+        }
 
-        // Shadows
+        item.setScale(SETTINGS.getScale());
+
+        scene.setGameItems(new MeshedItem[]{item});
+
         scene.setRenderShadows(true);
 
-        // Setup  SkyBox
-        float skyBoxScale = 100.0f;
-        Skybox skyBox = new Skybox("/Users/merkrin/Programming/SkeletalAnimatonVisualizer/src/main/resources/models/skybox.obj",
-                new Vector4f(0.65f, 0.65f, 0.65f, 1.0f));
-        skyBox.setScale(skyBoxScale);
+        Skybox skyBox = new Skybox(SETTINGS.getSkyboxPath(), SETTINGS.getSkyboxColor());
+        skyBox.setScale(SETTINGS.getSkyboxScale());
         scene.setSkyBox(skyBox);
 
-        // Setup Lights
         setupLights();
 
         camera.setPosition(SETTINGS.getCameraPosition());
@@ -121,6 +126,9 @@ public class AnimatorLogic implements Logic {
         sceneLight.setDirectionalLight(new DirectionalLight(SETTINGS.getLightColor(),
                 SETTINGS.getLightDirection(),
                 SETTINGS.getLightIntensity()));
+
+        // Point lights
+        sceneLight.setPointLightList(SETTINGS.getPointLights());
     }
 
     @Override
@@ -170,18 +178,27 @@ public class AnimatorLogic implements Logic {
             lightAngleIncrement = 0;
         }
         if (window.isKeyPressed(GLFW_KEY_SPACE)) {
-            sceneChanged = true;
+            if (SETTINGS.isModelAnimated()) {
+                sceneChanged = true;
 
-            float elapsedTime = timer.getElapsedTime();
+                float elapsedTime = timer.getElapsedTime();
 
-            if (animation != null && elapsedTime >= timePerAnimationFrame) {
-                timer.updateLastLoopTime();
+                if (animation != null && elapsedTime >= timePerAnimationFrame) {
+                    timer.updateLastLoopTime();
 
-                animation.nextFrame();
+                    animation.nextFrame();
+                }
             }
         }
-        if(window.isKeyPressed(GLFW_KEY_P)){
+        if (window.isKeyPressed(GLFW_KEY_P)) {
             screenCapture.run();
+        }
+        if (window.isKeyPressed(GLFW_KEY_C)) {
+            try {
+                saveSettings();
+            } catch (IOException e) {
+                System.out.println("Unable to save file.");
+            }
         }
 
         GraphicsUtils.setWireframe(window.isKeyPressed(GLFW_KEY_G));
@@ -224,6 +241,24 @@ public class AnimatorLogic implements Logic {
 
         // Update view matrix
         camera.updateViewMatrix();
+    }
+
+    private void saveSettings() throws IOException {
+        String cli = ArgumentsParser.createCommandLine();
+
+        File file = getFileToSave(".sav");
+
+        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+        writer.write(cli);
+
+        writer.close();
+    }
+
+    private static File getFileToSave(String fileFormat) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");
+        LocalDateTime now = LocalDateTime.now();
+
+        return new File(dtf.format(now) + fileFormat);
     }
 
     @Override

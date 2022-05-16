@@ -7,7 +7,7 @@ import ru.hse.core.utils.Constants;
 import ru.hse.core.utils.Settings;
 import ru.hse.engine.Camera;
 import ru.hse.engine.MeshedItem;
-import ru.hse.engine.animation.AnimGameItem;
+import ru.hse.engine.animation.AnimatedItem;
 import ru.hse.engine.animation.AnimatedFrame;
 import ru.hse.engine.shadows.ShadowCascade;
 import ru.hse.engine.shadows.ShadowRenderer;
@@ -236,9 +236,9 @@ public class Renderer {
                 sceneShaderProgram.setUniform("selectedNonInstanced", gameItem.isSelected() ? 1.0f : 0.0f);
                 Matrix4f modelMatrix = transformation.buildModelMatrix(gameItem);
                 sceneShaderProgram.setUniform("modelNonInstancedMatrix", modelMatrix);
-                if (gameItem instanceof AnimGameItem) {
-                    AnimGameItem animGameItem = (AnimGameItem) gameItem;
-                    AnimatedFrame frame = animGameItem.getCurrentAnimation().getCurrentFrame();
+                if (gameItem instanceof AnimatedItem) {
+                    AnimatedItem animatedItem = (AnimatedItem) gameItem;
+                    AnimatedFrame frame = animatedItem.getCurrentAnimation().getCurrentFrame();
                     sceneShaderProgram.setUniform("jointsMatrix", frame.getJointMatrices());
                 }
             });

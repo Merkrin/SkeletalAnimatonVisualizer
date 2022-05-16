@@ -1,5 +1,6 @@
 package ru.hse.engine.shadows;
 
+import ru.hse.core.utils.Constants;
 import ru.hse.graphics.model.ArrTexture;
 
 import static org.lwjgl.opengl.GL11.GL_DEPTH_COMPONENT;
@@ -19,7 +20,7 @@ public class ShadowBuffer {
         depthMapFBO = glGenFramebuffers();
 
         // Create the depth map textures
-        depthMap = new ArrTexture(ShadowRenderer.NUM_CASCADES, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT, GL_DEPTH_COMPONENT);
+        depthMap = new ArrTexture(Constants.CASCADES_NUMBER, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT, GL_DEPTH_COMPONENT);
 
         // Attach the depth map texture to the FBO
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
@@ -46,7 +47,7 @@ public class ShadowBuffer {
     }
 
     public void bindTextures(int start) {
-        for (int i = 0; i < ShadowRenderer.NUM_CASCADES; i++) {
+        for (int i = 0; i < Constants.CASCADES_NUMBER; i++) {
             glActiveTexture(start + i);
             glBindTexture(GL_TEXTURE_2D, depthMap.getIds()[i]);
         }

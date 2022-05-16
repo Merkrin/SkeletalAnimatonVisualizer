@@ -1,13 +1,10 @@
 package ru.hse.engine;
 
-import ru.hse.core.utils.Settings;
 import ru.hse.engine.utils.MouseInput;
 import ru.hse.engine.utils.Timer;
 import ru.hse.engine.utils.Window;
 
 public class Engine implements Runnable{
-    private static final Settings SETTINGS = Settings.getInstance();
-
     public static final int TARGET_FPS = 75;
 
     public static final int TARGET_UPS = 30;
@@ -16,18 +13,18 @@ public class Engine implements Runnable{
 
     private final Timer timer;
 
-    private final Logic gameLogic;
+    private final Logic logic;
 
     private final MouseInput mouseInput;
 
-    public Engine(String windowTitle, boolean vSync, Window.WindowOptions opts, Logic gameLogic) throws Exception {
-        this(windowTitle, 0, 0, vSync, opts, gameLogic);
+    public Engine(String windowTitle, boolean vSync, Window.WindowOptions opts, Logic logic) throws Exception {
+        this(windowTitle, 0, 0, vSync, opts, logic);
     }
 
-    public Engine(String windowTitle, int width, int height, boolean vSync, Window.WindowOptions opts, Logic gameLogic) throws Exception {
+    public Engine(String windowTitle, int width, int height, boolean vSync, Window.WindowOptions opts, Logic logic) throws Exception {
         window = new Window(windowTitle, width, height, vSync, opts);
         mouseInput = new MouseInput();
-        this.gameLogic = gameLogic;
+        this.logic = logic;
         timer = new Timer();
     }
 
@@ -47,7 +44,7 @@ public class Engine implements Runnable{
         window.init();
         timer.init();
         mouseInput.init(window);
-        gameLogic.init(window);
+        logic.init(window);
     }
 
     protected void gameLoop() {
@@ -76,7 +73,7 @@ public class Engine implements Runnable{
     }
 
     protected void cleanup() {
-        gameLogic.cleanup();
+        logic.cleanup();
     }
 
     private void sync() {
@@ -92,15 +89,15 @@ public class Engine implements Runnable{
 
     protected void input() {
         mouseInput.input();
-        gameLogic.input(window, mouseInput);
+        logic.input(window, mouseInput);
     }
 
     protected void update(float interval) {
-        gameLogic.update(interval, mouseInput);
+        logic.update(interval, mouseInput);
     }
 
     protected void render() {
-        gameLogic.render(window);
+        logic.render(window);
         window.update();
     }
 }

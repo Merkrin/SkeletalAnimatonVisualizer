@@ -1,5 +1,6 @@
 package ru.hse.core;
 
+import ru.hse.core.utils.ArgumentsParser;
 import ru.hse.core.utils.Constants;
 import ru.hse.core.utils.Settings;
 import ru.hse.engine.AnimatorLogic;
@@ -12,6 +13,8 @@ public class Main {
 
     public static void main(String[] args) {
         try {
+            ArgumentsParser.readArguments(args);
+
             Logic animatorLogic = new AnimatorLogic();
 
             Window.WindowOptions windowOptions = new Window.WindowOptions();

@@ -1,6 +1,9 @@
 package ru.hse.core.utils;
 
 import org.joml.Vector3f;
+import org.joml.Vector4f;
+import ru.hse.core.utils.exceptions.InvalidSettingException;
+import ru.hse.graphics.lighting.PointLight;
 
 public class Settings {
     private static final Settings INSTANCE = new Settings();
@@ -27,21 +30,37 @@ public class Settings {
     private Vector3f cameraPosition = new Vector3f(-20, 20, -20);
     private Vector3f cameraRotation = new Vector3f(20, 140, 0);
 
-    private int TARGET_FPS = 75;
-
-    private int TARGET_UPS = 30;
-
     private float specularPower = 10;
 
     private boolean isVSyncEnabled = true;
 
     private int screenshotType = 1;
 
+    private boolean isModelAnimated = true;
+
+    private String pathToModel;
+    private String pathToTexture;
+
+    private float scale = 1.0f;
+
+    private float skyboxScale = 100.0f;
+
+    private Vector4f skyboxColor = new Vector4f(0.65f, 0.65f, 0.65f, 1.0f);
+
+    private String skyboxPath = "";
+
+    private PointLight[] pointLights = {};
+
     public Vector3f getAmbientLight() {
         return ambientLight;
     }
 
+    public String getAmbientLightAsString() {
+        return ambientLight.x + "," + ambientLight.y + "," + ambientLight.z;
+    }
+
     public void setAmbientLight(Vector3f ambientLight) {
+        ambientLight.normalize();
         this.ambientLight = ambientLight;
     }
 
@@ -49,7 +68,12 @@ public class Settings {
         return skyboxLight;
     }
 
+    public String getSkyboxLightAsString() {
+        return skyboxLight.x + "," + skyboxLight.y + "," + skyboxLight.z;
+    }
+
     public void setSkyboxLight(Vector3f skyboxLight) {
+        skyboxLight.normalize();
         this.skyboxLight = skyboxLight;
     }
 
@@ -57,7 +81,10 @@ public class Settings {
         return lightIntensity;
     }
 
-    public void setLightIntensity(float lightIntensity) {
+    public void setLightIntensity(float lightIntensity) throws InvalidSettingException {
+        if (lightIntensity > 1.0f || lightIntensity < 0.0f)
+            throw new InvalidSettingException("Invalid light intensity.");
+
         this.lightIntensity = lightIntensity;
     }
 
@@ -65,7 +92,12 @@ public class Settings {
         return lightDirection;
     }
 
+    public String getLightDirectionAsString() {
+        return lightDirection.x + "," + lightDirection.y + "," + lightDirection.z;
+    }
+
     public void setLightDirection(Vector3f lightDirection) {
+        lightDirection.normalize();
         this.lightDirection = lightDirection;
     }
 
@@ -73,7 +105,16 @@ public class Settings {
         return lightColor;
     }
 
-    public void setLightColor(Vector3f lightColor) {
+    public String getLightColorAsString() {
+        return lightColor.x + "," + lightColor.y + "," + lightColor.z;
+    }
+
+    public void setLightColor(Vector3f lightColor) throws InvalidSettingException {
+        if (lightColor.x > 1.0f || lightColor.x < 0.0f ||
+                lightColor.y > 1.0f || lightColor.y < 0.0f ||
+                lightColor.z > 1.0f || lightColor.z < 0.0f)
+            throw new InvalidSettingException("Invalid color value");
+
         this.lightColor = lightColor;
     }
 
@@ -81,7 +122,10 @@ public class Settings {
         return currentLightAngle;
     }
 
-    public void setCurrentLightAngle(float currentLightAngle) {
+    public void setCurrentLightAngle(float currentLightAngle) throws InvalidSettingException {
+        if (currentLightAngle < 0.0f || currentLightAngle > 180.0f)
+            throw new InvalidSettingException("Invalid light angle.");
+
         this.currentLightAngle = currentLightAngle;
     }
 
@@ -89,12 +133,19 @@ public class Settings {
         return animationFramesPerSecond;
     }
 
-    public void setAnimationFramesPerSecond(int animationFramesPerSecond) {
+    public void setAnimationFramesPerSecond(int animationFramesPerSecond) throws InvalidSettingException {
+        if (animationFramesPerSecond < 1)
+            throw new InvalidSettingException("Invalid animations frames per second value.");
+
         this.animationFramesPerSecond = animationFramesPerSecond;
     }
 
     public Vector3f getCameraPosition() {
         return cameraPosition;
+    }
+
+    public String getCameraPositionAsString() {
+        return cameraPosition.x + "," + cameraPosition.y + "," + cameraPosition.z;
     }
 
     public void setCameraPosition(Vector3f cameraPosition) {
@@ -105,24 +156,12 @@ public class Settings {
         return cameraRotation;
     }
 
+    public String getCameraRotationAsString() {
+        return cameraRotation.x + "," + cameraRotation.y + "," + cameraRotation.z;
+    }
+
     public void setCameraRotation(Vector3f cameraRotation) {
         this.cameraRotation = cameraRotation;
-    }
-
-    public int getTARGET_FPS() {
-        return TARGET_FPS;
-    }
-
-    public void setTARGET_FPS(int TARGET_FPS) {
-        this.TARGET_FPS = TARGET_FPS;
-    }
-
-    public int getTARGET_UPS() {
-        return TARGET_UPS;
-    }
-
-    public void setTARGET_UPS(int TARGET_UPS) {
-        this.TARGET_UPS = TARGET_UPS;
     }
 
     public float getSpecularPower() {
@@ -145,7 +184,116 @@ public class Settings {
         return screenshotType;
     }
 
-    public void setScreenshotType(int screenshotType) {
+    public void setScreenshotType(int screenshotType) throws InvalidSettingException {
+        if (screenshotType < 1 || screenshotType > 3)
+            throw new InvalidSettingException("Invalid screenshot type value.");
+
         this.screenshotType = screenshotType;
+    }
+
+    public boolean isModelAnimated() {
+        return isModelAnimated;
+    }
+
+    public void setModelAnimated(boolean modelAnimated) {
+        isModelAnimated = modelAnimated;
+    }
+
+    public String getPathToModel() {
+        return pathToModel;
+    }
+
+    public void setPathToModel(String pathToModel) {
+        this.pathToModel = pathToModel;
+    }
+
+    public String getPathToTexture() {
+        return pathToTexture;
+    }
+
+    public void setPathToTexture(String pathToTexture) {
+        this.pathToTexture = pathToTexture;
+    }
+
+    public float getScale() {
+        return scale;
+    }
+
+    public void setScale(float scale) throws InvalidSettingException {
+        if (scale <= 0.0f)
+            throw new InvalidSettingException("Invalid scale value.");
+
+        this.scale = scale;
+    }
+
+    public float getSkyboxScale() {
+        return skyboxScale;
+    }
+
+    public void setSkyboxScale(float skyboxScale) throws InvalidSettingException {
+        if (skyboxScale <= 0.0f)
+            throw new InvalidSettingException("Invalid skybox scale value.");
+
+        this.skyboxScale = skyboxScale;
+    }
+
+    public String getSkyboxPath() {
+        return skyboxPath;
+    }
+
+    public void setSkyboxPath(String skyboxPath) {
+        this.skyboxPath = skyboxPath;
+    }
+
+    public PointLight[] getPointLights() {
+        return pointLights;
+    }
+
+    public String getPointLightPositions() {
+        String positions = "";
+
+        for (int i = 0; i < pointLights.length; i++) {
+            positions += pointLights[i].getPosition().x + "," +
+                    pointLights[i].getPosition().y + "," +
+                    pointLights[i].getPosition().z;
+
+            if (i != pointLights.length - 1)
+                positions += ",";
+        }
+
+        return positions;
+    }
+
+    public String getPointLightColors() {
+        String colors = "";
+
+        for (int i = 0; i < pointLights.length; i++) {
+            colors += pointLights[i].getColor().x + "," +
+                    pointLights[i].getColor().y + "," +
+                    pointLights[i].getColor().z;
+
+            if (i != pointLights.length - 1)
+                colors += ",";
+        }
+
+        return colors;
+    }
+
+    public void setPointLights(PointLight[] pointLights) {
+        this.pointLights = pointLights;
+    }
+
+    public Vector4f getSkyboxColor() {
+        return skyboxColor;
+    }
+
+    public void setSkyboxColor(Vector4f skyboxColor) throws InvalidSettingException {
+        if (skyboxColor.x > 1.0f || skyboxColor.x < 0.0f ||
+                skyboxColor.y > 1.0f || skyboxColor.y < 0.0f ||
+                skyboxColor.z > 1.0f || skyboxColor.z < 0.0f ||
+                skyboxColor.w > 1.0f || skyboxColor.w < 0.0f)
+            throw new InvalidSettingException("Invalid color value");
+
+        this.skyboxColor = skyboxColor;
     }
 }
