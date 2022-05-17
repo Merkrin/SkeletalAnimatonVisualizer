@@ -8,9 +8,17 @@ import ru.hse.engine.Engine;
 import ru.hse.engine.Logic;
 import ru.hse.engine.utils.Window;
 
+/**
+ * Main class of the application.
+ */
 public class Main {
     private static final Settings SETTINGS = Settings.getInstance();
 
+    /**
+     * Main method of the application.
+     *
+     * @param args command line arguments
+     */
     public static void main(String[] args) {
         try {
             ArgumentsParser.readArguments(args);
@@ -27,6 +35,8 @@ public class Main {
             System.out.println("An error occurred.");
 
             e.printStackTrace();
+        } finally {
+            System.out.println("Terminating process...");
         }
     }
 }

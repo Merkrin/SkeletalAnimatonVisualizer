@@ -1,5 +1,8 @@
 package ru.hse.core.utils;
 
+/**
+ * Utility class for constants storage.
+ */
 public class Constants {
     public final static float MOUSE_SENSITIVITY = 0.2f;
 

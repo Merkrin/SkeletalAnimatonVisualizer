@@ -25,7 +25,7 @@ public class Settings {
 
     private float currentLightAngle = 90f;
 
-    private int animationFramesPerSecond = 2;
+    private int animationFramesPerSecond = -1;
 
     private Vector3f cameraPosition = new Vector3f(-20, 20, -20);
     private Vector3f cameraRotation = new Vector3f(20, 140, 0);
@@ -134,7 +134,7 @@ public class Settings {
     }
 
     public void setAnimationFramesPerSecond(int animationFramesPerSecond) throws InvalidSettingException {
-        if (animationFramesPerSecond < 1)
+        if (animationFramesPerSecond < 1 && animationFramesPerSecond != -1)
             throw new InvalidSettingException("Invalid animations frames per second value.");
 
         this.animationFramesPerSecond = animationFramesPerSecond;

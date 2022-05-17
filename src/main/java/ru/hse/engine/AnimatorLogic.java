@@ -79,7 +79,7 @@ public class AnimatorLogic implements Logic {
 
     @Override
     public void init(Window window) throws Exception {
-        renderer.init(window);
+        renderer.init();
 
         scene = new Scene();
 
@@ -183,11 +183,12 @@ public class AnimatorLogic implements Logic {
 
                 float elapsedTime = timer.getElapsedTime();
 
-                if (animation != null && elapsedTime >= timePerAnimationFrame) {
+                if (animation != null && timePerAnimationFrame > 0 && elapsedTime >= timePerAnimationFrame) {
                     timer.updateLastLoopTime();
 
                     animation.nextFrame();
-                }
+                } else if (animation != null)
+                    animation.nextFrame();
             }
         }
         if (window.isKeyPressed(GLFW_KEY_P)) {

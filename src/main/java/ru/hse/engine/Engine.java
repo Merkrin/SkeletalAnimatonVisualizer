@@ -33,8 +33,8 @@ public class Engine implements Runnable{
         try {
             init();
             gameLoop();
-        } catch (Exception excp) {
-            excp.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             cleanup();
         }

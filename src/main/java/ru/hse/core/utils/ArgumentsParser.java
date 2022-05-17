@@ -13,6 +13,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 
+/**
+ * Class for command line arguments parsing.
+ */
 public class ArgumentsParser {
     private static final Settings SETTINGS = Settings.getInstance();
 
@@ -23,6 +26,11 @@ public class ArgumentsParser {
 
     private static final HashMap<String, String> settings = new HashMap<>();
 
+    /**
+     * Read arguments given to the program.
+     *
+     * @param args arguments array given
+     */
     public static void readArguments(String[] args) {
         boolean isMac = System.getProperty("os.name").startsWith("Mac");
 
@@ -32,8 +40,7 @@ public class ArgumentsParser {
             if (args.length != 1) {
                 arguments = new String[args.length - 1];
 
-                if (args.length - 1 >= 0) System.arraycopy(args, 1,
-                        arguments, 0, args.length - 1);
+                System.arraycopy(args, 1, arguments, 0, args.length - 1);
             }
         } else {
             if (args.length != 0)
@@ -44,15 +51,16 @@ public class ArgumentsParser {
             try {
                 parseArguments(arguments);
             } catch (CommandLineArgumentsException | InvalidSettingException | NullPointerException e) {
-                System.out.println("An error in command line format found: " +
-                        e.getMessage());
+                System.out.println("An error in command line format found: " + e.getMessage());
+
                 System.out.println("Starting with standard settings...");
             } catch (IOException | SettingsFileException e) {
-                System.out.println("An error while reading file occurred: " +
-                        e.getMessage());
+                System.out.println("An error while reading file occurred: " + e.getMessage());
+
                 System.out.println("Starting with standard settings...");
             } catch (Exception e) {
                 System.out.println("An unhandled exception occurred: " + e.getMessage());
+
                 System.out.println("Exiting...");
 
                 System.exit(0);
@@ -60,7 +68,19 @@ public class ArgumentsParser {
         }
     }
 
-    private static void parseArguments(String[] args) throws SettingsFileException, IOException, CommandLineArgumentsException, InvalidSettingException {
+    /**
+     * Parse given arguments.
+     *
+     * @param args arguments array without OS-based flags
+     * @throws SettingsFileException         setting file error
+     * @throws IOException                   input or output error
+     * @throws CommandLineArgumentsException command line arguments error
+     * @throws InvalidSettingException       invalid setting error
+     */
+    private static void parseArguments(String[] args) throws SettingsFileException,
+            IOException,
+            CommandLineArgumentsException,
+            InvalidSettingException {
         if (args[0].equals("-FF"))
             args = readArgsFromFile(args[1]);
 
@@ -130,6 +150,14 @@ public class ArgumentsParser {
         }
     }
 
+    /**
+     * Read arguments from a file.
+     *
+     * @param filePath path to a settings file
+     * @return arguments from the file as an array
+     * @throws SettingsFileException setting file error
+     * @throws IOException           input or output error
+     */
     private static String[] readArgsFromFile(String filePath) throws SettingsFileException, IOException {
         if (!(filePath).endsWith(".sav"))
             throw new SettingsFileException("Not a *.sav-file given for settings reading.");
@@ -139,6 +167,11 @@ public class ArgumentsParser {
         return Files.readAllLines(path).get(0).split(" ");
     }
 
+    /**
+     * Create command line from existing settings.
+     *
+     * @return settings as a string in command line format
+     */
     public static String createCommandLine() {
         String commandLine = "";
 
@@ -169,11 +202,23 @@ public class ArgumentsParser {
         return commandLine;
     }
 
+    /**
+     * Check that there is an appropriate arguments amount.
+     *
+     * @param argsAmount half of the arguments amount
+     * @throws CommandLineArgumentsException command line arguments error
+     */
     private static void checkLength(double argsAmount) throws CommandLineArgumentsException {
         if (argsAmount > MAXIMAL_ARGUMENTS_AMOUNT || argsAmount != (int) argsAmount)
             throw new CommandLineArgumentsException("Invalid arguments amount.");
     }
 
+    /**
+     * Check if given flag is valid.
+     *
+     * @param flag flag given
+     * @return true if the flag is valid and false otherwise
+     */
     private static boolean isValidFlag(String flag) {
         for (String validFlag : flags)
             if (validFlag.equals(flag))
@@ -182,6 +227,13 @@ public class ArgumentsParser {
         return false;
     }
 
+    /**
+     * Utility method to create Vector3f from string.
+     *
+     * @param cmd command string given
+     * @return Vector3f of given numbers
+     * @throws InvalidSettingException invalid setting error
+     */
     private static Vector3f createVector3f(String cmd) throws InvalidSettingException {
         String[] positionStrings = cmd.split(",");
 
@@ -193,6 +245,13 @@ public class ArgumentsParser {
                 Float.parseFloat(positionStrings[2]));
     }
 
+    /**
+     * Utility method to create Vector4f from string.
+     *
+     * @param cmd command string given
+     * @return Vector4f of given numbers
+     * @throws InvalidSettingException invalid setting error
+     */
     private static Vector4f createVector4f(String cmd) throws InvalidSettingException {
         String[] positionStrings = cmd.split(",");
 
@@ -205,6 +264,13 @@ public class ArgumentsParser {
                 Float.parseFloat(positionStrings[3]));
     }
 
+    /**
+     * Create boolean from string.
+     *
+     * @param cmd command string given
+     * @return boolean value of string
+     * @throws InvalidSettingException invalid setting error
+     */
     private static boolean createBoolean(String cmd) throws InvalidSettingException {
         if (cmd.equalsIgnoreCase("true"))
             return true;
@@ -214,6 +280,14 @@ public class ArgumentsParser {
         throw new InvalidSettingException("Invalid boolean value.");
     }
 
+    /**
+     * Utility method to create PointLights array from given strings.
+     *
+     * @param cmdPositions given positions string
+     * @param cmdColors    given colors string
+     * @return PointLights array
+     * @throws CommandLineArgumentsException command line arguments error
+     */
     private static PointLight[] createPointLights(String cmdPositions, String cmdColors) throws CommandLineArgumentsException {
         String[] positionStrings = cmdPositions.split(",");
         String[] colorStrings = cmdColors.split(",");
