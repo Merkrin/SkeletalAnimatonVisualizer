@@ -1,11 +1,3 @@
 # Project exclude paths
 /target/
 .idea
-*.obj
-*.png
-*.md5mesh
-*.md5anim
-*.mtl
-*.jpeg
-*.dae
-*.jpg
