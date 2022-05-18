@@ -16,22 +16,36 @@ import java.time.format.DateTimeFormatter;
 
 import static ru.hse.engine.utils.screenshots.ScreenshotFileType.*;
 
+/**
+ * Class for screenshots capture.
+ */
 public class ScreenCapture implements Runnable {
     private static final Settings SETTINGS = Settings.getInstance();
 
     private int windowWidth;
     private int windowHeight;
 
+    /**
+     * Initialization method.
+     *
+     * @param window active window
+     */
     public void initialize(Window window) {
         windowWidth = window.getWidth();
         windowHeight = window.getHeight();
     }
 
+    /**
+     * Overridden run method.
+     */
     @Override
     public void run() {
         saveImage();
     }
 
+    /**
+     * Method for image saving.
+     */
     private void saveImage() {
         GL11.glReadBuffer(GL11.GL_FRONT);
 

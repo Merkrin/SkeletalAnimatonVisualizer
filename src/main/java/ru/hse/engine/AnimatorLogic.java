@@ -45,7 +45,6 @@ public class AnimatorLogic implements Logic {
 
     private final Vector3f cameraPositionIncrement;
 
-    // seconds for one animation frame
     private final double timePerAnimationFrame;
 
     private Animation animation;
@@ -89,13 +88,12 @@ public class AnimatorLogic implements Logic {
             item = AnimatedMeshLoader.loadAnimatedItem(SETTINGS.getPathToModel(), SETTINGS.getPathToTexture());
 
             animation = ((AnimatedItem) item).getCurrentAnimation();
-        } else {
+        } else
             item = new MeshedItem(StaticMeshLoader.load(SETTINGS.getPathToModel(), SETTINGS.getPathToTexture()));
-        }
 
         item.setScale(SETTINGS.getScale());
 
-        scene.setGameItems(new MeshedItem[]{item});
+        scene.setMeshItems(new MeshedItem[]{item});
 
         scene.setRenderShadows(true);
 
@@ -118,16 +116,13 @@ public class AnimatorLogic implements Logic {
 
         scene.setSceneLight(sceneLight);
 
-        // Ambient Light
         sceneLight.setAmbientLight(SETTINGS.getAmbientLight());
         sceneLight.setSkyBoxLight(SETTINGS.getSkyboxLight());
 
-        // Directional Light
         sceneLight.setDirectionalLight(new DirectionalLight(SETTINGS.getLightColor(),
                 SETTINGS.getLightDirection(),
                 SETTINGS.getLightIntensity()));
 
-        // Point lights
         sceneLight.setPointLightList(SETTINGS.getPointLights());
     }
 
@@ -191,9 +186,8 @@ public class AnimatorLogic implements Logic {
                     animation.nextFrame();
             }
         }
-        if (window.isKeyPressed(GLFW_KEY_P)) {
+        if (window.isKeyPressed(GLFW_KEY_P))
             screenCapture.run();
-        }
         if (window.isKeyPressed(GLFW_KEY_C)) {
             try {
                 saveSettings();
@@ -201,12 +195,10 @@ public class AnimatorLogic implements Logic {
                 System.out.println("Unable to save file.");
             }
         }
-        if (window.isKeyPressed(GLFW_KEY_H)) {
+        if (window.isKeyPressed(GLFW_KEY_H))
             showHelp();
-        }
-        if (window.isKeyPressed(GLFW_KEY_J)) {
+        if (window.isKeyPressed(GLFW_KEY_J))
             showAbout();
-        }
 
         GraphicsUtils.setWireframe(window.isKeyPressed(GLFW_KEY_G));
     }
@@ -214,7 +206,6 @@ public class AnimatorLogic implements Logic {
     @Override
     public void update(float interval, MouseInput mouseInput) {
         if (mouseInput.isRightButtonPressed()) {
-            // Update camera based on mouse
             Vector2f rotationVector = mouseInput.getDisplacementVector();
 
             camera.moveRotation(rotationVector.x * Constants.MOUSE_SENSITIVITY,
@@ -224,7 +215,6 @@ public class AnimatorLogic implements Logic {
             sceneChanged = true;
         }
 
-        // Update camera position based on keyboard
         camera.movePosition(cameraPositionIncrement.x * Constants.CAMERA_POSITION_STEP,
                 cameraPositionIncrement.y * Constants.CAMERA_POSITION_STEP,
                 cameraPositionIncrement.z * Constants.CAMERA_POSITION_STEP);
@@ -246,7 +236,6 @@ public class AnimatorLogic implements Logic {
         lightDirection.z = zValue;
         lightDirection.normalize();
 
-        // Update view matrix
         camera.updateViewMatrix();
     }
 

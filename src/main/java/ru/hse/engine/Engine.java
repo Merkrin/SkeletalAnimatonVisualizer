@@ -4,7 +4,7 @@ import ru.hse.engine.utils.MouseInput;
 import ru.hse.engine.utils.Timer;
 import ru.hse.engine.utils.Window;
 
-public class Engine implements Runnable{
+public class Engine implements Runnable {
     public static final int TARGET_FPS = 75;
 
     public static final int TARGET_UPS = 30;
@@ -21,10 +21,12 @@ public class Engine implements Runnable{
         this(windowTitle, 0, 0, vSync, opts, logic);
     }
 
-    public Engine(String windowTitle, int width, int height, boolean vSync, Window.WindowOptions opts, Logic logic) throws Exception {
+    public Engine(String windowTitle, int width, int height, boolean vSync, Window.WindowOptions opts, Logic logic) {
         window = new Window(windowTitle, width, height, vSync, opts);
         mouseInput = new MouseInput();
+
         this.logic = logic;
+
         timer = new Timer();
     }
 
@@ -52,8 +54,7 @@ public class Engine implements Runnable{
         float accumulator = 0f;
         float interval = 1f / TARGET_UPS;
 
-        boolean running = true;
-        while (running && !window.windowShouldClose()) {
+        while (!window.windowShouldClose()) {
             elapsedTime = timer.getElapsedTime();
             accumulator += elapsedTime;
 
@@ -66,9 +67,8 @@ public class Engine implements Runnable{
 
             render();
 
-            if ( !window.isvSync() ) {
+            if (!window.isvSync())
                 sync();
-            }
         }
     }
 
@@ -79,6 +79,7 @@ public class Engine implements Runnable{
     private void sync() {
         float loopSlot = 1f / TARGET_FPS;
         double endTime = timer.getLastLoopTime() + loopSlot;
+
         while (timer.getTime() < endTime) {
             try {
                 Thread.sleep(1);

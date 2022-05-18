@@ -9,20 +9,14 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
+/**
+ * Active window representation class.
+ */
 public class Window {
-    /**
-     * Field of View in Radians
-     */
     public static final float FOV = (float) Math.toRadians(60.0f);
 
-    /**
-     * Distance to the near plane
-     */
     public static final float Z_NEAR = 0.01f;
 
-    /**
-     * Distance to the far plane
-     */
     public static final float Z_FAR = 1000.f;
 
     private final String title;
@@ -37,57 +31,69 @@ public class Window {
 
     private boolean vSync;
 
-    private final WindowOptions opts;
+    private final WindowOptions windowOptions;
 
     private final Matrix4f projectionMatrix;
 
-    public Window(String title, int width, int height, boolean vSync, WindowOptions opts) {
+    /**
+     * The class' constructor.
+     *
+     * @param title         window title
+     * @param width         window width
+     * @param height        windiw height
+     * @param vSync         vSync flag
+     * @param windowOptions window options
+     */
+    public Window(String title, int width, int height, boolean vSync, WindowOptions windowOptions) {
         this.title = title;
         this.width = width;
         this.height = height;
         this.vSync = vSync;
         this.resized = false;
-        this.opts = opts;
+        this.windowOptions = windowOptions;
+
         projectionMatrix = new Matrix4f();
     }
 
+    /**
+     * Initialization method.
+     */
     public void init() {
-        // Setup an error callback. The default implementation
-        // will print the error message in System.err.
         GLFWErrorCallback.createPrint(System.err).set();
 
-        // Initialize GLFW. Most GLFW functions will not work before doing this.
-        if (!glfwInit()) {
+        if (!glfwInit())
             throw new IllegalStateException("Unable to initialize GLFW");
-        }
 
-        glfwDefaultWindowHints(); // optional, the current window hints are already the default
-        glfwWindowHint(GLFW_VISIBLE, GL_FALSE); // the window will stay hidden after creation
-        glfwWindowHint(GLFW_RESIZABLE, GL_TRUE); // the window will be resizable
+        glfwDefaultWindowHints();
+        glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+        glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        if (opts.compatibleProfile) {
+
+        if (windowOptions.compatibleProfile)
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
-        } else {
+        else {
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         }
 
         boolean maximized = false;
-        // If no size has been specified set it to maximized state
+
         if (width == 0 || height == 0) {
             GLFWVidMode vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
             width = vidMode.width();
             height = vidMode.height();
+
             glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+
             maximized = true;
         }
 
-        // Create the window
         windowHandle = glfwCreateWindow(width, height, title, NULL, NULL);
-        if (windowHandle == NULL) {
+
+        if (windowHandle == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
-        }
 
         glfwSetFramebufferSizeCallback(windowHandle, (window, width, height) -> {
             this.width = width;
@@ -95,151 +101,159 @@ public class Window {
             this.setResized(true);
         });
 
-        // Setup a key callback. It will be called every time a key is pressed, repeated or released.
         glfwSetKeyCallback(windowHandle, (window, key, scancode, action, mods) -> {
-            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
-                glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
-            }
+            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
+                glfwSetWindowShouldClose(window, true);
         });
 
-        if (maximized) {
+        if (maximized)
             glfwMaximizeWindow(windowHandle);
-        } else {
-            // Get the resolution of the primary monitor
-            GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-            // Center our window
-            glfwSetWindowPos(
-                    windowHandle,
-                    (vidmode.width() - width) / 2,
-                    (vidmode.height() - height) / 2
-            );
+        else {
+            GLFWVidMode vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+            glfwSetWindowPos(windowHandle, (vidMode.width() - width) / 2, (vidMode.height() - height) / 2);
         }
 
-        // Make the OpenGL context current
         glfwMakeContextCurrent(windowHandle);
 
-        if (isvSync()) {
-            // Enable v-sync
+        if (isvSync())
             glfwSwapInterval(1);
-        }
 
-        // Make the window visible
         glfwShowWindow(windowHandle);
 
         GL.createCapabilities();
 
-        // Set the clear color
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_STENCIL_TEST);
-        if (opts.showTriangles) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        }
 
-        // Support for transparencies
+        if (windowOptions.showTriangles)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        if (opts.cullFace) {
+        if (windowOptions.cullFace) {
             glEnable(GL_CULL_FACE);
             glCullFace(GL_BACK);
         }
 
-        // Antialiasing
-        if (opts.antialiasing) {
+        if (windowOptions.antialiasing)
             glfwWindowHint(GLFW_SAMPLES, 4);
-        }
     }
 
-    public void restoreState() {
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_STENCIL_TEST);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        if (opts.cullFace) {
-            glEnable(GL_CULL_FACE);
-            glCullFace(GL_BACK);
-        }
-    }
-
+    /**
+     * Window handle getter.
+     *
+     * @return window handle
+     */
     public long getWindowHandle() {
         return windowHandle;
     }
 
-    public String getWindowTitle() {
-        return title;
-    }
-
-    public void setWindowTitle(String title) {
-        glfwSetWindowTitle(windowHandle, title);
-    }
-
-    public WindowOptions getWindowOptions() {
-        return opts;
-    }
-
+    /**
+     * Projection matrix getter.
+     *
+     * @return projection matrix
+     */
     public Matrix4f getProjectionMatrix() {
         return projectionMatrix;
     }
 
+    /**
+     * Update projection matrix.
+     */
     public void updateProjectionMatrix() {
         float aspectRatio = (float) width / (float) height;
+
         projectionMatrix.setPerspective(FOV, aspectRatio, Z_NEAR, Z_FAR);
     }
 
-    public static Matrix4f updateProjectionMatrix(Matrix4f matrix, int width, int height) {
-        float aspectRatio = (float) width / (float) height;
-        return matrix.setPerspective(FOV, aspectRatio, Z_NEAR, Z_FAR);
-    }
-
-    public void setClearColor(float r, float g, float b, float alpha) {
-        glClearColor(r, g, b, alpha);
-    }
-
+    /**
+     * Check if given key is pressed.
+     *
+     * @param keyCode key code
+     * @return true if the key is pressed and false otherwise
+     */
     public boolean isKeyPressed(int keyCode) {
         return glfwGetKey(windowHandle, keyCode) == GLFW_PRESS;
     }
 
+    /**
+     * Check if window should be closed.
+     *
+     * @return true if the window should be closed and false otherwise
+     */
     public boolean windowShouldClose() {
         return glfwWindowShouldClose(windowHandle);
     }
 
-    public String getTitle() {
-        return title;
-    }
-
+    /**
+     * Window width getter.
+     *
+     * @return window width
+     */
     public int getWidth() {
         return width;
     }
 
+    /**
+     * Window height getter.
+     *
+     * @return window height
+     */
     public int getHeight() {
         return height;
     }
 
-    public boolean isResized() {
-        return resized;
-    }
-
+    /**
+     * Resized flag setter.
+     *
+     * @param resized resized flag
+     */
     public void setResized(boolean resized) {
         this.resized = resized;
     }
 
+    /**
+     * vSync flag getter.
+     *
+     * @return vSync flag
+     */
     public boolean isvSync() {
         return vSync;
     }
 
+    /**
+     * vSync flag setter.
+     *
+     * @param vSync vSync flag
+     */
     public void setvSync(boolean vSync) {
         this.vSync = vSync;
     }
 
+    /**
+     * Update window state.
+     */
     public void update() {
         glfwSwapBuffers(windowHandle);
         glfwPollEvents();
     }
 
+    /**
+     * Window options getter.
+     *
+     * @return window options
+     */
     public WindowOptions getOptions() {
-        return opts;
+        return windowOptions;
     }
 
+    /**
+     * Window options storage.
+     */
     public static class WindowOptions {
 
         public boolean cullFace;

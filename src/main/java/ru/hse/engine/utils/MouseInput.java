@@ -5,6 +5,9 @@ import org.joml.Vector2f;
 
 import static org.lwjgl.glfw.GLFW.*;
 
+/**
+ * Class for mouse input handling.
+ */
 public class MouseInput {
     private final Vector2d previousPosition;
 
@@ -18,21 +21,27 @@ public class MouseInput {
 
     private boolean rightButtonPressed = false;
 
+    /**
+     * The class' constructor.
+     */
     public MouseInput() {
         previousPosition = new Vector2d(-1, -1);
         currentPosition = new Vector2d(0, 0);
         displacementVector = new Vector2f();
     }
 
+    /**
+     * Initialization method.
+     *
+     * @param window current window
+     */
     public void init(Window window) {
         glfwSetCursorPosCallback(window.getWindowHandle(), (windowHandle, xpos, ypos) -> {
             currentPosition.x = xpos;
             currentPosition.y = ypos;
         });
 
-        glfwSetCursorEnterCallback(window.getWindowHandle(), (windowHandle, entered) -> {
-            inWindow = entered;
-        });
+        glfwSetCursorEnterCallback(window.getWindowHandle(), (windowHandle, entered) -> inWindow = entered);
 
         glfwSetMouseButtonCallback(window.getWindowHandle(), (windowHandle, button, action, mode) -> {
             leftButtonPressed = button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS;
@@ -40,10 +49,18 @@ public class MouseInput {
         });
     }
 
+    /**
+     * Displacement vector getter.
+     *
+     * @return displacement vector
+     */
     public Vector2f getDisplacementVector() {
         return displacementVector;
     }
 
+    /**
+     * Get mouse input.
+     */
     public void input() {
         displacementVector.x = 0;
         displacementVector.y = 0;
@@ -66,10 +83,11 @@ public class MouseInput {
         previousPosition.y = currentPosition.y;
     }
 
-    public boolean isLeftButtonPressed() {
-        return leftButtonPressed;
-    }
-
+    /**
+     * Check if right mouse button is pressed.
+     *
+     * @return true if right button is pressed and false otherwise
+     */
     public boolean isRightButtonPressed() {
         return rightButtonPressed;
     }

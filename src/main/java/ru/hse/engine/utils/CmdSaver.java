@@ -10,7 +10,15 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Command line saver class.
+ */
 public class CmdSaver {
+    /**
+     * Save given command line to file.
+     *
+     * @param cmd command line to save
+     */
     public static void saveCmd(String cmd) {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern(Constants.SCREENSHOT_FILENAME_PATTERN);
         LocalDateTime now = LocalDateTime.now();

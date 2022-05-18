@@ -71,10 +71,6 @@ public class MeshedItem {
         return rotation;
     }
 
-    public final void setRotation(Quaternionf q) {
-        this.rotation.set(q);
-    }
-
     public Mesh getMesh() {
         return meshes[0];
     }
@@ -83,27 +79,15 @@ public class MeshedItem {
         return meshes;
     }
 
-    public void setMeshes(Mesh[] meshes) {
-        this.meshes = meshes;
-    }
-
     public void setMesh(Mesh mesh) {
         this.meshes = new Mesh[]{mesh};
     }
 
     public void cleanup() {
         int numMeshes = this.meshes != null ? this.meshes.length : 0;
-        for (int i = 0; i < numMeshes; i++) {
+
+        for (int i = 0; i < numMeshes; i++)
             this.meshes[i].cleanUp();
-        }
-    }
-
-    public void setSelected(boolean selected) {
-        this.selected = selected;
-    }
-
-    public void setTextPos(int textPos) {
-        this.textPos = textPos;
     }
 
     public boolean isInsideFrustum() {
@@ -116,9 +100,5 @@ public class MeshedItem {
 
     public boolean isDisableFrustumCulling() {
         return disableFrustumCulling;
-    }
-
-    public void setDisableFrustumCulling(boolean disableFrustumCulling) {
-        this.disableFrustumCulling = disableFrustumCulling;
     }
 }

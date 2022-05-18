@@ -1,7 +1,6 @@
 package ru.hse.engine.shadows;
 
 import org.joml.Matrix4f;
-import ru.hse.core.Renderer;
 import ru.hse.core.utils.Constants;
 import ru.hse.engine.Camera;
 import ru.hse.engine.MeshedItem;
@@ -47,6 +46,7 @@ public class ShadowRenderer {
 
     /**
      * Initialization method.
+     *
      * @throws Exception an unhandled exception
      */
     public void init() throws Exception {
@@ -66,18 +66,35 @@ public class ShadowRenderer {
         }
     }
 
+    /**
+     * Shadow cascades getter.
+     *
+     * @return shadow cascades
+     */
     public List<ShadowCascade> getShadowCascades() {
         return shadowCascades;
     }
 
+    /**
+     * Bind textures.
+     *
+     * @param start starting index
+     */
     public void bindTextures(int start) {
         this.shadowBuffer.bindTextures(start);
     }
 
+    /**
+     * Setup shader for depths.
+     *
+     * @throws Exception an unhandled exception
+     */
     private void setupDepthShader() throws Exception {
         depthShaderProgram = new ShaderProgram();
+
         depthShaderProgram.createVertexShader(Utils.loadResource("shaders/depth_vertex.glsl"));
         depthShaderProgram.createFragmentShader(Utils.loadResource("shaders/depth_fragment.glsl"));
+
         depthShaderProgram.link();
 
         depthShaderProgram.createUniform("isInstanced");
@@ -87,16 +104,34 @@ public class ShadowRenderer {
         depthShaderProgram.createUniform("orthoProjectionMatrix");
     }
 
+    /**
+     * Update current state.
+     *
+     * @param window     active window
+     * @param viewMatrix ciew matrix
+     * @param scene      active scene
+     */
     private void update(Window window, Matrix4f viewMatrix, Scene scene) {
         SceneLight sceneLight = scene.getSceneLight();
+
         DirectionalLight directionalLight = sceneLight != null ? sceneLight.getDirectionalLight() : null;
+
         for (int i = 0; i < Constants.CASCADES_NUMBER; i++) {
             ShadowCascade shadowCascade = shadowCascades.get(i);
+
             shadowCascade.update(window, viewMatrix, directionalLight);
         }
     }
 
-    public void render(Window window, Scene scene, Camera camera, Transformation transformation, Renderer renderer) {
+    /**
+     * Render shadows.
+     *
+     * @param window         active window
+     * @param scene          active scene
+     * @param camera         active camera
+     * @param transformation current transformation
+     */
+    public void render(Window window, Scene scene, Camera camera, Transformation transformation) {
         update(window, camera.getViewMatrix(), scene);
 
         glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer.getDepthMapFBO());
@@ -108,43 +143,34 @@ public class ShadowRenderer {
         for (int i = 0; i < Constants.CASCADES_NUMBER; i++) {
             ShadowCascade shadowCascade = shadowCascades.get(i);
 
-            depthShaderProgram.setUniform("orthoProjectionMatrix", shadowCascade.getOrthogonalProjectionMatrix());
-            depthShaderProgram.setUniform("lightViewMatrix", shadowCascade.getLightViewMatrix());
+            depthShaderProgram.setUniform("orthoProjectionMatrix",
+                    shadowCascade.getOrthogonalProjectionMatrix());
+            depthShaderProgram.setUniform("lightViewMatrix",
+                    shadowCascade.getLightViewMatrix());
 
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowBuffer.getDepthMapTexture().getIds()[i], 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
+                    shadowBuffer.getDepthMapTexture().getIds()[i], 0);
             glClear(GL_DEPTH_BUFFER_BIT);
-
-            renderNonInstancedMeshes(scene, transformation);
 
             renderInstancedMeshes(scene, transformation);
         }
 
         depthShaderProgram.unbind();
+
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    private void renderNonInstancedMeshes(Scene scene, Transformation transformation) {
-        depthShaderProgram.setUniform("isInstanced", 0);
-
-        Map<Mesh, List<MeshedItem>> mapMeshes = scene.getGameMeshes();
-        for (Mesh mesh : mapMeshes.keySet()) {
-            mesh.renderList(mapMeshes.get(mesh), (MeshedItem gameItem) -> {
-                        Matrix4f modelMatrix = transformation.buildModelMatrix(gameItem);
-                        depthShaderProgram.setUniform("modelNonInstancedMatrix", modelMatrix);
-                        if (gameItem instanceof AnimatedItem) {
-                            AnimatedItem animatedItem = (AnimatedItem) gameItem;
-                            AnimatedFrame frame = animatedItem.getCurrentAnimation().getCurrentFrame();
-                            depthShaderProgram.setUniform("jointsMatrix", frame.getJointMatrices());
-                        }
-                    }
-            );
-        }
-    }
-
+    /**
+     * Render meshes.
+     *
+     * @param scene          active scene
+     * @param transformation current transformation
+     */
     private void renderInstancedMeshes(Scene scene, Transformation transformation) {
         depthShaderProgram.setUniform("isInstanced", 1);
 
         Map<InstancedMesh, List<MeshedItem>> mapMeshes = scene.getGameInstancedMeshes();
+
         for (InstancedMesh mesh : mapMeshes.keySet()) {
             filteredItems.clear();
 
@@ -158,6 +184,9 @@ public class ShadowRenderer {
         }
     }
 
+    /**
+     * Cleanup method.
+     */
     public void cleanup() {
         if (shadowBuffer != null)
             shadowBuffer.cleanup();

@@ -39,35 +39,39 @@ public class Scene {
         return renderShadows;
     }
 
-    public void setGameItems(MeshedItem[] gameItems) {
-        // Create a map of meshes to speed up rendering
-        int numGameItems = gameItems != null ? gameItems.length : 0;
-        for (int i = 0; i < numGameItems; i++) {
-            MeshedItem gameItem = gameItems[i];
-            Mesh[] meshes = gameItem.getMeshes();
+    public void setMeshItems(MeshedItem[] meshedItems) {
+        int meshedItemsAmount = meshedItems != null ? meshedItems.length : 0;
+
+        for (int i = 0; i < meshedItemsAmount; i++) {
+            MeshedItem meshedItem = meshedItems[i];
+
+            Mesh[] meshes = meshedItem.getMeshes();
+
             for (Mesh mesh : meshes) {
                 boolean instancedMesh = mesh instanceof InstancedMesh;
+
                 List<MeshedItem> list = instancedMesh ? instancedMeshMap.get(mesh) : meshMap.get(mesh);
+
                 if (list == null) {
                     list = new ArrayList<>();
-                    if (instancedMesh) {
+
+                    if (instancedMesh)
                         instancedMeshMap.put((InstancedMesh) mesh, list);
-                    } else {
+                    else
                         meshMap.put(mesh, list);
-                    }
                 }
-                list.add(gameItem);
+
+                list.add(meshedItem);
             }
         }
     }
 
     public void cleanup() {
-        for (Mesh mesh : meshMap.keySet()) {
+        for (Mesh mesh : meshMap.keySet())
             mesh.cleanUp();
-        }
-        for (Mesh mesh : instancedMeshMap.keySet()) {
+
+        for (Mesh mesh : instancedMeshMap.keySet())
             mesh.cleanUp();
-        }
     }
 
     public Skybox getSkyBox() {
