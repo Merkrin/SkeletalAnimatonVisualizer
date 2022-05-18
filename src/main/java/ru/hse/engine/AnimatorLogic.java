@@ -201,6 +201,12 @@ public class AnimatorLogic implements Logic {
                 System.out.println("Unable to save file.");
             }
         }
+        if (window.isKeyPressed(GLFW_KEY_H)) {
+            showHelp();
+        }
+        if (window.isKeyPressed(GLFW_KEY_J)) {
+            showAbout();
+        }
 
         GraphicsUtils.setWireframe(window.isKeyPressed(GLFW_KEY_G));
     }
@@ -281,5 +287,18 @@ public class AnimatorLogic implements Logic {
 
         for (Mesh mesh : mapMeshes.keySet())
             mesh.cleanUp();
+    }
+
+    private void showHelp() {
+        System.out.println("Use 'W', 'S', 'A' and 'D' to move camera.\n" +
+                "Use 'X' and 'Z' to move camera up and down.\n" +
+                "Use left and right arrows to change light position.\n" +
+                "Use space bar to move model.\n" +
+                "Use 'P' to save screenshot.\n" +
+                "Use 'G' to show wireframe.");
+    }
+
+    private void showAbout() {
+        System.out.println("HSE University Moscow, Barciuc Irina, 2022");
     }
 }

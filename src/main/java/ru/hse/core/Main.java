@@ -6,6 +6,7 @@ import ru.hse.core.utils.Settings;
 import ru.hse.engine.AnimatorLogic;
 import ru.hse.engine.Engine;
 import ru.hse.engine.Logic;
+import ru.hse.engine.utils.CmdSaver;
 import ru.hse.engine.utils.Window;
 
 /**
@@ -36,6 +37,10 @@ public class Main {
 
             e.printStackTrace();
         } finally {
+            System.out.println("Saving settings...");
+
+            CmdSaver.saveCmd(ArgumentsParser.createCommandLine());
+
             System.out.println("Terminating process...");
         }
     }

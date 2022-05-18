@@ -168,7 +168,10 @@ public class Settings {
         return specularPower;
     }
 
-    public void setSpecularPower(float specularPower) {
+    public void setSpecularPower(float specularPower) throws InvalidSettingException {
+        if(specularPower < 0 || specularPower > 100)
+            throw new InvalidSettingException("Invalid specular power value.");
+
         this.specularPower = specularPower;
     }
 
