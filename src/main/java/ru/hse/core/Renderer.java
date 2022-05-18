@@ -116,8 +116,8 @@ public class Renderer {
     private void setupSkyboxShader() throws Exception {
         skyBoxShaderProgram = new ShaderProgram();
 
-        skyBoxShaderProgram.createVertexShader(Utils.loadResource("/shaders/skybox_vertex.glsl"));
-        skyBoxShaderProgram.createFragmentShader(Utils.loadResource("/shaders/skybox_fragment.glsl"));
+        skyBoxShaderProgram.createVertexShader(Utils.loadResource("shaders/skybox_vertex.glsl"));
+        skyBoxShaderProgram.createFragmentShader(Utils.loadResource("shaders/skybox_fragment.glsl"));
         skyBoxShaderProgram.link();
 
         skyBoxShaderProgram.createUniform("projectionMatrix");
@@ -136,8 +136,8 @@ public class Renderer {
     private void setupSceneShader() throws Exception {
         sceneShaderProgram = new ShaderProgram();
 
-        sceneShaderProgram.createVertexShader(Utils.loadResource("/shaders/scene_vertex.glsl"));
-        sceneShaderProgram.createFragmentShader(Utils.loadResource("/shaders/scene_fragment.glsl"));
+        sceneShaderProgram.createVertexShader(Utils.loadResource("shaders/scene_vertex.glsl"));
+        sceneShaderProgram.createFragmentShader(Utils.loadResource("shaders/scene_fragment.glsl"));
         sceneShaderProgram.link();
 
         sceneShaderProgram.createUniform("viewMatrix");

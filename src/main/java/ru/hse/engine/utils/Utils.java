@@ -4,10 +4,12 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.*;
+import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,10 +20,21 @@ import java.util.Scanner;
 public class Utils {
     public static String loadResource(String fileName) throws Exception {
         String result;
-        try (InputStream in = Utils.class.getResourceAsStream(fileName);
-             Scanner scanner = new Scanner(in, java.nio.charset.StandardCharsets.UTF_8.name())) {
-            result = scanner.useDelimiter("\\A").next();
+
+        try {
+            try (InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName);
+                 Scanner scanner = new Scanner(in, java.nio.charset.StandardCharsets.UTF_8.name())) {
+                result = scanner.useDelimiter("\\A").next();
+            }
+        }catch(NullPointerException e){
+            String path = Utils.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+            String decodedPath = URLDecoder.decode(path, "UTF-8");
+            String separator = FileSystems.getDefault().getSeparator();
+            System.out.println(decodedPath.substring(0, decodedPath.lastIndexOf(separator) + 1));
+
+            throw new NullPointerException();
         }
+
         return result;
     }
 
