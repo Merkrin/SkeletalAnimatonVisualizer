@@ -24,6 +24,9 @@ import java.util.Map;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL30.*;
 
+/**
+ * Shadow renderer class.
+ */
 public class ShadowRenderer {
     public static final float[] CASCADE_SPLITS = new float[]{Window.Z_FAR / 20.0f, Window.Z_FAR / 10.0f, Window.Z_FAR};
 
@@ -35,10 +38,17 @@ public class ShadowRenderer {
 
     private final List<MeshedItem> filteredItems;
 
+    /**
+     * The class' constructor.
+     */
     public ShadowRenderer() {
         filteredItems = new ArrayList<>();
     }
 
+    /**
+     * Initialization method.
+     * @throws Exception an unhandled exception
+     */
     public void init() throws Exception {
         shadowBuffer = new ShadowBuffer();
         shadowCascades = new ArrayList<>();
@@ -49,7 +59,9 @@ public class ShadowRenderer {
 
         for (int i = 0; i < Constants.CASCADES_NUMBER; i++) {
             ShadowCascade shadowCascade = new ShadowCascade(zNear, CASCADE_SPLITS[i]);
+
             shadowCascades.add(shadowCascade);
+
             zNear = CASCADE_SPLITS[i];
         }
     }

@@ -14,154 +14,290 @@ import ru.hse.engine.utils.Utils;
 import ru.hse.graphics.model.Material;
 import ru.hse.graphics.model.Mesh;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.lwjgl.assimp.Assimp.*;
 
+/**
+ * Loader of an animated mesh.
+ */
 public class AnimatedMeshLoader extends StaticMeshLoader {
-    public static AnimatedItem loadAnimGameItem(String resourcePath, String texturesDir) throws Exception {
-        return loadAnimGameItem(resourcePath, texturesDir,
+    /**
+     * Load animated item.
+     *
+     * @param meshPath          path to the mesh
+     * @param texturesDirectory mesh's texture directory
+     * @return loaded mesh
+     * @throws Exception an unhandled exception
+     */
+    public static AnimatedItem loadAnimatedItem(String meshPath, String texturesDirectory) throws Exception {
+        return loadAnimatedItem(meshPath, texturesDirectory,
                 aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices | aiProcess_Triangulate
                         | aiProcess_FixInfacingNormals | aiProcess_LimitBoneWeights);
     }
 
-    public static AnimatedItem loadAnimGameItem(String resourcePath, String texturesDir, int flags)
+    /**
+     * Load animated item.
+     *
+     * @param meshPath          path to the mesh
+     * @param texturesDirectory mesh's texture directory
+     * @param flags             loading flags
+     * @return loaded mesh
+     * @throws Exception an unhandled exception
+     */
+    public static AnimatedItem loadAnimatedItem(String meshPath, String texturesDirectory, int flags)
             throws Exception {
-        AIScene aiScene = aiImportFile(resourcePath, flags);
-        if (aiScene == null) {
-            throw new Exception("Error loading model");
-        }
+        AIScene aiScene = aiImportFile(meshPath, flags);
 
-        int numMaterials = aiScene.mNumMaterials();
+        if (aiScene == null)
+            throw new Exception("Error loading model");
+
+        int materialsNumber = aiScene.mNumMaterials();
+
         PointerBuffer aiMaterials = aiScene.mMaterials();
+
+        if (aiMaterials == null)
+            throw new Exception("Error loading model");
+
         List<Material> materials = new ArrayList<>();
-        for (int i = 0; i < numMaterials; i++) {
+
+        for (int i = 0; i < materialsNumber; i++) {
             AIMaterial aiMaterial = AIMaterial.create(aiMaterials.get(i));
-            processMaterial(aiMaterial, materials, texturesDir);
+
+            processMaterial(aiMaterial, materials, texturesDirectory);
         }
 
         List<Bone> boneList = new ArrayList<>();
-        int numMeshes = aiScene.mNumMeshes();
+
+        int meshesNumber = aiScene.mNumMeshes();
+
         PointerBuffer aiMeshes = aiScene.mMeshes();
-        Mesh[] meshes = new Mesh[numMeshes];
-        for (int i = 0; i < numMeshes; i++) {
+
+        if (aiMeshes == null)
+            throw new Exception("Error loading model");
+
+        Mesh[] meshes = new Mesh[meshesNumber];
+
+        for (int i = 0; i < meshesNumber; i++) {
             AIMesh aiMesh = AIMesh.create(aiMeshes.get(i));
+
             Mesh mesh = processMesh(aiMesh, materials, boneList);
+
             meshes[i] = mesh;
         }
 
-        Node rootNode = buildNodesTree(aiScene.mRootNode(), null);
-        Matrix4f globalInverseTransformation = toMatrix(aiScene.mRootNode().mTransformation()).invert();
-        Map<String, Animation> animations = processAnimations(aiScene, boneList, rootNode,
-                globalInverseTransformation);
+        Node rootNode = buildNodesTree(Objects.requireNonNull(aiScene.mRootNode()), null);
+
+        Matrix4f globalInverseTransformation = toMatrix(Objects.requireNonNull(aiScene.mRootNode())
+                .mTransformation())
+                .invert();
+
+        Map<String, Animation> animations = processAnimations(aiScene, boneList, rootNode, globalInverseTransformation);
 
         return new AnimatedItem(meshes, animations);
     }
 
-    private static Node buildNodesTree(AINode aiNode, Node parentNode) {
+    /**
+     * Build tree of nodes.
+     *
+     * @param aiNode     loaded node
+     * @param parentNode parent node
+     * @return root node
+     * @throws Exception an unhandled exception
+     */
+    private static Node buildNodesTree(AINode aiNode, Node parentNode) throws Exception {
         String nodeName = aiNode.mName().dataString();
+
         Node node = new Node(nodeName, parentNode, toMatrix(aiNode.mTransformation()));
 
-        int numChildren = aiNode.mNumChildren();
+        int childrenAmount = aiNode.mNumChildren();
+
         PointerBuffer aiChildren = aiNode.mChildren();
-        for (int i = 0; i < numChildren; i++) {
+
+        for (int i = 0; i < childrenAmount; i++) {
             AINode aiChildNode = AINode.create(aiChildren.get(i));
             Node childNode = buildNodesTree(aiChildNode, node);
             node.addChild(childNode);
         }
+
         return node;
     }
 
+    /**
+     * Load animations.
+     *
+     * @param aiScene                     loaded scene
+     * @param boneList                    list of bones
+     * @param rootNode                    root node
+     * @param globalInverseTransformation global inverse transformation
+     * @return loaded animations
+     * @throws Exception an unhandled exception
+     */
     private static Map<String, Animation> processAnimations(AIScene aiScene, List<Bone> boneList,
-                                                            Node rootNode, Matrix4f globalInverseTransformation) {
+                                                            Node rootNode, Matrix4f globalInverseTransformation)
+            throws Exception {
         Map<String, Animation> animations = new HashMap<>();
 
-        // Process all animations
-        int numAnimations = aiScene.mNumAnimations();
+        int animationsAmount = aiScene.mNumAnimations();
+
         PointerBuffer aiAnimations = aiScene.mAnimations();
-        for (int i = 0; i < numAnimations; i++) {
+
+        if (aiAnimations == null)
+            throw new Exception("Error loading model");
+
+        for (int i = 0; i < animationsAmount; i++) {
             AIAnimation aiAnimation = AIAnimation.create(aiAnimations.get(i));
-            int maxFrames = calcAnimationMaxFrames(aiAnimation);
+
+            int maxFrames = calculateAnimationMaximalFramesAmount(aiAnimation);
 
             List<AnimatedFrame> frames = new ArrayList<>();
+
             Animation animation = new Animation(aiAnimation.mName().dataString(), frames, aiAnimation.mDuration());
+
             animations.put(animation.getName(), animation);
 
             for (int j = 0; j < maxFrames; j++) {
                 AnimatedFrame animatedFrame = new AnimatedFrame();
+
                 buildFrameMatrices(aiAnimation, boneList, animatedFrame, j, rootNode,
                         rootNode.getNodeTransformation(), globalInverseTransformation);
+
                 frames.add(animatedFrame);
             }
         }
+
         return animations;
     }
 
-    private static void buildFrameMatrices(AIAnimation aiAnimation, List<Bone> boneList, AnimatedFrame animatedFrame, int frame,
-                                           Node node, Matrix4f parentTransformation, Matrix4f globalInverseTransform) {
+    /**
+     * Build matrices for each frame.
+     *
+     * @param aiAnimation                 loaded animation
+     * @param boneList                    bones list
+     * @param animatedFrame               animation frame
+     * @param frame                       current frame
+     * @param node                        current node
+     * @param parentTransformation        parent transformation
+     * @param globalInverseTransformation global inverse transformation
+     * @throws Exception an unhandled exception
+     */
+    private static void buildFrameMatrices(AIAnimation aiAnimation, List<Bone> boneList, AnimatedFrame animatedFrame,
+                                           int frame, Node node, Matrix4f parentTransformation,
+                                           Matrix4f globalInverseTransformation) throws Exception {
         String nodeName = node.getName();
+
         AINodeAnim aiNodeAnim = findAIAnimNode(aiAnimation, nodeName);
-        Matrix4f nodeTransform = node.getNodeTransformation();
-        if (aiNodeAnim != null) {
-            nodeTransform = buildNodeTransformationMatrix(aiNodeAnim, frame);
-        }
-        Matrix4f nodeGlobalTransform = new Matrix4f(parentTransformation).mul(nodeTransform);
 
-        List<Bone> affectedBones = boneList.stream().filter(b -> b.getBoneName().equals(nodeName)).collect(Collectors.toList());
+        Matrix4f nodeTransformation = node.getNodeTransformation();
+
+        if (aiNodeAnim != null)
+            nodeTransformation = buildNodeTransformationMatrix(aiNodeAnim, frame);
+
+        Matrix4f nodeGlobalTransformation = new Matrix4f(parentTransformation).mul(nodeTransformation);
+
+        List<Bone> affectedBones = boneList.stream().filter(b -> b.getBoneName()
+                        .equals(nodeName))
+                .collect(Collectors.toList());
+
         for (Bone bone : affectedBones) {
-            Matrix4f boneTransform = new Matrix4f(globalInverseTransform).mul(nodeGlobalTransform).
-                    mul(bone.getOffsetMatrix());
-            animatedFrame.setMatrix(bone.getBoneId(), boneTransform);
+            Matrix4f boneTransform = new Matrix4f(globalInverseTransformation)
+                    .mul(nodeGlobalTransformation)
+                    .mul(bone.getOffsetMatrix());
+
+            animatedFrame.setJointMatrix(bone.getBoneId(), boneTransform);
         }
 
-        for (Node childNode : node.getChildren()) {
-            buildFrameMatrices(aiAnimation, boneList, animatedFrame, frame, childNode, nodeGlobalTransform,
-                    globalInverseTransform);
-        }
+        for (Node childNode : node.getChildren())
+            buildFrameMatrices(aiAnimation, boneList, animatedFrame, frame, childNode,
+                    nodeGlobalTransformation, globalInverseTransformation);
     }
 
-    private static Matrix4f buildNodeTransformationMatrix(AINodeAnim aiNodeAnim, int frame) {
+    /**
+     * Build transformation matrix for the node.
+     *
+     * @param aiNodeAnim loaded node animation
+     * @param frame      current frame
+     * @return node transformation matrix
+     * @throws Exception an unhandled exception
+     */
+    private static Matrix4f buildNodeTransformationMatrix(AINodeAnim aiNodeAnim, int frame) throws Exception {
         AIVectorKey.Buffer positionKeys = aiNodeAnim.mPositionKeys();
+
+        if (positionKeys == null)
+            throw new Exception("Error loading model");
+
         AIVectorKey.Buffer scalingKeys = aiNodeAnim.mScalingKeys();
+
+        if (scalingKeys == null)
+            throw new Exception("Error loading model");
+
         AIQuatKey.Buffer rotationKeys = aiNodeAnim.mRotationKeys();
 
-        AIVectorKey aiVecKey;
-        AIVector3D vec;
+        if (rotationKeys == null)
+            throw new Exception("Error loading model");
+
+        AIVectorKey aiVectorKey;
+        AIVector3D aiVector3D;
 
         Matrix4f nodeTransform = new Matrix4f();
-        int numPositions = aiNodeAnim.mNumPositionKeys();
-        if (numPositions > 0) {
-            aiVecKey = positionKeys.get(Math.min(numPositions - 1, frame));
-            vec = aiVecKey.mValue();
-            nodeTransform.translate(vec.x(), vec.y(), vec.z());
+
+        int positionsAmount = aiNodeAnim.mNumPositionKeys();
+
+        if (positionsAmount > 0) {
+            aiVectorKey = positionKeys.get(Math.min(positionsAmount - 1, frame));
+            aiVector3D = aiVectorKey.mValue();
+
+            nodeTransform.translate(aiVector3D.x(), aiVector3D.y(), aiVector3D.z());
         }
-        int numRotations = aiNodeAnim.mNumRotationKeys();
-        if (numRotations > 0) {
-            AIQuatKey quatKey = rotationKeys.get(Math.min(numRotations - 1, frame));
-            AIQuaternion aiQuat = quatKey.mValue();
-            Quaternionf quat = new Quaternionf(aiQuat.x(), aiQuat.y(), aiQuat.z(), aiQuat.w());
-            nodeTransform.rotate(quat);
+
+        int rotationsAmount = aiNodeAnim.mNumRotationKeys();
+
+        if (rotationsAmount > 0) {
+            AIQuatKey aiQuatKey = rotationKeys.get(Math.min(rotationsAmount - 1, frame));
+            AIQuaternion aiQuaternion = aiQuatKey.mValue();
+
+            Quaternionf quaternion = new Quaternionf(aiQuaternion.x(),
+                    aiQuaternion.y(),
+                    aiQuaternion.z(),
+                    aiQuaternion.w());
+
+            nodeTransform.rotate(quaternion);
         }
-        int numScalingKeys = aiNodeAnim.mNumScalingKeys();
-        if (numScalingKeys > 0) {
-            aiVecKey = scalingKeys.get(Math.min(numScalingKeys - 1, frame));
-            vec = aiVecKey.mValue();
-            nodeTransform.scale(vec.x(), vec.y(), vec.z());
+
+        int scalingKeysAmount = aiNodeAnim.mNumScalingKeys();
+
+        if (scalingKeysAmount > 0) {
+            aiVectorKey = scalingKeys.get(Math.min(scalingKeysAmount - 1, frame));
+            aiVector3D = aiVectorKey.mValue();
+
+            nodeTransform.scale(aiVector3D.x(), aiVector3D.y(), aiVector3D.z());
         }
 
         return nodeTransform;
     }
 
-    private static AINodeAnim findAIAnimNode(AIAnimation aiAnimation, String nodeName) {
+    /**
+     * Find animation node.
+     *
+     * @param aiAnimation loded animation
+     * @param nodeName    node name
+     * @return animation node
+     * @throws Exception an unhandled exception
+     */
+    private static AINodeAnim findAIAnimNode(AIAnimation aiAnimation, String nodeName) throws Exception {
         AINodeAnim result = null;
-        int numAnimNodes = aiAnimation.mNumChannels();
+
+        int animNodesAmount = aiAnimation.mNumChannels();
+
         PointerBuffer aiChannels = aiAnimation.mChannels();
-        for (int i = 0; i < numAnimNodes; i++) {
+
+        if (aiChannels == null)
+            throw new Exception("Error loading model");
+
+        for (int i = 0; i < animNodesAmount; i++) {
             AINodeAnim aiNodeAnim = AINodeAnim.create(aiChannels.get(i));
+
             if (nodeName.equals(aiNodeAnim.mNodeName().dataString())) {
                 result = aiNodeAnim;
                 break;
@@ -170,50 +306,94 @@ public class AnimatedMeshLoader extends StaticMeshLoader {
         return result;
     }
 
-    private static int calcAnimationMaxFrames(AIAnimation aiAnimation) {
-        int maxFrames = 0;
-        int numNodeAnims = aiAnimation.mNumChannels();
+    /**
+     * Calculate animation maximal frames amount.
+     *
+     * @param aiAnimation loaded animation
+     * @return frames amount
+     * @throws Exception an unhandled exception
+     */
+    private static int calculateAnimationMaximalFramesAmount(AIAnimation aiAnimation) throws Exception {
+        int maximalFramesAmount = 0;
+
+        int nodeAnimationsAmount = aiAnimation.mNumChannels();
+
         PointerBuffer aiChannels = aiAnimation.mChannels();
-        for (int i = 0; i < numNodeAnims; i++) {
+
+        if (aiChannels == null)
+            throw new Exception("Error loading model");
+
+        for (int i = 0; i < nodeAnimationsAmount; i++) {
             AINodeAnim aiNodeAnim = AINodeAnim.create(aiChannels.get(i));
-            int numFrames = Math.max(Math.max(aiNodeAnim.mNumPositionKeys(), aiNodeAnim.mNumScalingKeys()),
+
+            int numFrames = Math.max(Math.max(aiNodeAnim.mNumPositionKeys(),
+                            aiNodeAnim.mNumScalingKeys()),
                     aiNodeAnim.mNumRotationKeys());
-            maxFrames = Math.max(maxFrames, numFrames);
+
+            maximalFramesAmount = Math.max(maximalFramesAmount, numFrames);
         }
 
-        return maxFrames;
+        return maximalFramesAmount;
     }
 
-    private static void processBones(AIMesh aiMesh, List<Bone> boneList, List<Integer> boneIds,
-                                     List<Float> weights) {
+    /**
+     * Load bones.
+     *
+     * @param aiMesh   loaded mesh
+     * @param boneList bones list
+     * @param boneIds  bones ids
+     * @param weights  weights
+     * @throws Exception an unhandled exception
+     */
+    private static void processBones(AIMesh aiMesh, List<Bone> boneList, List<Integer> boneIds, List<Float> weights)
+            throws Exception {
         Map<Integer, List<VertexWeight>> weightSet = new HashMap<>();
-        int numBones = aiMesh.mNumBones();
+
+        int bonesAmount = aiMesh.mNumBones();
+
         PointerBuffer aiBones = aiMesh.mBones();
-        for (int i = 0; i < numBones; i++) {
+
+        if (aiBones == null)
+            throw new Exception("Error loading model");
+
+        for (int i = 0; i < bonesAmount; i++) {
             AIBone aiBone = AIBone.create(aiBones.get(i));
+
             int id = boneList.size();
+
             Bone bone = new Bone(id, aiBone.mName().dataString(), toMatrix(aiBone.mOffsetMatrix()));
+
             boneList.add(bone);
-            int numWeights = aiBone.mNumWeights();
+
+            int weightsAmount = aiBone.mNumWeights();
+
             AIVertexWeight.Buffer aiWeights = aiBone.mWeights();
-            for (int j = 0; j < numWeights; j++) {
-                AIVertexWeight aiWeight = aiWeights.get(j);
-                VertexWeight vw = new VertexWeight(bone.getBoneId(), aiWeight.mVertexId(),
-                        aiWeight.mWeight());
-                List<VertexWeight> vertexWeightList = weightSet.computeIfAbsent(vw.getVertexId(), k -> new ArrayList<>());
-                vertexWeightList.add(vw);
+
+            for (int j = 0; j < weightsAmount; j++) {
+                AIVertexWeight aiVertexWeight = aiWeights.get(j);
+
+                VertexWeight vertexWeight = new VertexWeight(bone.getBoneId(),
+                        aiVertexWeight.mVertexId(), aiVertexWeight.mWeight());
+
+                List<VertexWeight> vertexWeightList = weightSet.computeIfAbsent(vertexWeight.getVertexId(), k -> new ArrayList<>());
+
+                vertexWeightList.add(vertexWeight);
             }
         }
 
-        int numVertices = aiMesh.mNumVertices();
-        for (int i = 0; i < numVertices; i++) {
+        int verticesAmount = aiMesh.mNumVertices();
+
+        for (int i = 0; i < verticesAmount; i++) {
             List<VertexWeight> vertexWeightList = weightSet.get(i);
+
             int size = vertexWeightList != null ? vertexWeightList.size() : 0;
+
             for (int j = 0; j < Mesh.MAX_WEIGHTS; j++) {
                 if (j < size) {
-                    VertexWeight vw = vertexWeightList.get(j);
-                    weights.add(vw.getWeight());
-                    boneIds.add(vw.getBoneId());
+                    VertexWeight vertexWeight = vertexWeightList.get(j);
+
+                    weights.add(vertexWeight.getWeight());
+                    boneIds.add(vertexWeight.getBoneId());
                 } else {
                     weights.add(0.0f);
                     boneIds.add(0);
@@ -222,7 +402,16 @@ public class AnimatedMeshLoader extends StaticMeshLoader {
         }
     }
 
-    private static Mesh processMesh(AIMesh aiMesh, List<Material> materials, List<Bone> boneList) {
+    /**
+     * Load mesh.
+     *
+     * @param aiMesh    loaded mesh
+     * @param materials materials
+     * @param boneList  bones list
+     * @return mesh
+     * @throws Exception an unhandled exception
+     */
+    private static Mesh processMesh(AIMesh aiMesh, List<Material> materials, List<Bone> boneList) throws Exception {
         List<Float> vertices = new ArrayList<>();
         List<Float> textures = new ArrayList<>();
         List<Float> normals = new ArrayList<>();
@@ -232,35 +421,44 @@ public class AnimatedMeshLoader extends StaticMeshLoader {
 
         processVertices(aiMesh, vertices);
         processNormals(aiMesh, normals);
-        processTextCoords(aiMesh, textures);
+        processTextureCoordinates(aiMesh, textures);
         processIndices(aiMesh, indices);
         processBones(aiMesh, boneList, boneIds, weights);
 
-        // Texture coordinates may not have been populated. We need at least the empty slots
         if (textures.size() == 0) {
-            int numElements = (vertices.size() / 3) * 2;
-            for (int i = 0; i < numElements; i++) {
+            int elementsAmount = (vertices.size() / 3) * 2;
+
+            for (int i = 0; i < elementsAmount; i++)
                 textures.add(0.0f);
-            }
         }
 
         Mesh mesh = new Mesh(Utils.listToArray(vertices), Utils.listToArray(textures),
                 Utils.listToArray(normals), Utils.listIntToArray(indices),
                 Utils.listIntToArray(boneIds), Utils.listToArray(weights));
+
         Material material;
-        int materialIdx = aiMesh.mMaterialIndex();
-        if (materialIdx >= 0 && materialIdx < materials.size()) {
-            material = materials.get(materialIdx);
-        } else {
+
+        int materialIndex = aiMesh.mMaterialIndex();
+
+        if (materialIndex >= 0 && materialIndex < materials.size())
+            material = materials.get(materialIndex);
+        else
             material = new Material();
-        }
+
         mesh.setMaterial(material);
 
         return mesh;
     }
 
+    /**
+     * Utility method for creating Matrix4f.
+     *
+     * @param aiMatrix4x4 loaded matrix
+     * @return Matrix4f
+     */
     private static Matrix4f toMatrix(AIMatrix4x4 aiMatrix4x4) {
         Matrix4f result = new Matrix4f();
+
         result.m00(aiMatrix4x4.a1());
         result.m10(aiMatrix4x4.a2());
         result.m20(aiMatrix4x4.a3());

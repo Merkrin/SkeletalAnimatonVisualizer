@@ -7,6 +7,9 @@ import ru.hse.engine.utils.Window;
 import ru.hse.graphics.Transformation;
 import ru.hse.graphics.lighting.DirectionalLight;
 
+/**
+ * Shadow cascade class.
+ */
 public class ShadowCascade {
     private static final int FRUSTUM_CORNERS = 8;
 
@@ -16,9 +19,6 @@ public class ShadowCascade {
 
     private final Matrix4f lightViewMatrix;
 
-    /**
-     * Center of the view cuboid un world space coordinates.
-     */
     private final Vector3f centroid;
 
     private final Vector3f[] frustumCorners;
@@ -27,8 +27,14 @@ public class ShadowCascade {
 
     private final float zFar;
 
-    private final Vector4f tmpVec;
+    private final Vector4f temporalVector;
 
+    /**
+     * The class' constructor.
+     *
+     * @param zNear z-coordinate of the near plane
+     * @param zFar  z-coordinate of the far plane
+     */
     public ShadowCascade(float zNear, float zFar) {
         this.zNear = zNear;
         this.zFar = zFar;
@@ -41,17 +47,34 @@ public class ShadowCascade {
         for (int i = 0; i < FRUSTUM_CORNERS; i++)
             frustumCorners[i] = new Vector3f();
 
-        tmpVec = new Vector4f();
+        temporalVector = new Vector4f();
     }
 
+    /**
+     * Light view matrix getter
+     *
+     * @return light view matrix
+     */
     public Matrix4f getLightViewMatrix() {
         return lightViewMatrix;
     }
 
+    /**
+     * Orthogonal projection matrix getter.
+     *
+     * @return Orthogonal projection matrix
+     */
     public Matrix4f getOrthogonalProjectionMatrix() {
         return orthogonalProjectionMatrix;
     }
 
+    /**
+     * Update shadows.
+     *
+     * @param window     current window
+     * @param viewMatrix view matrix
+     * @param light      active light
+     */
     public void update(Window window, Matrix4f viewMatrix, DirectionalLight light) {
         float aspectRatio = (float) window.getWidth() / (float) window.getHeight();
 
@@ -63,27 +86,41 @@ public class ShadowCascade {
 
         for (int i = 0; i < FRUSTUM_CORNERS; i++) {
             Vector3f corner = frustumCorners[i];
+
             corner.set(0, 0, 0);
+
             projectionViewMatrix.frustumCorner(i, corner);
+
             centroid.add(corner);
             centroid.div(8.0f);
+
             minZ = Math.min(minZ, corner.z);
             maxZ = Math.max(maxZ, corner.z);
         }
 
         Vector3f lightDirection = light.getDirection();
-        Vector3f lightPosInc = new Vector3f().set(lightDirection);
+        Vector3f lightPositionIncrement = new Vector3f().set(lightDirection);
+
         float distance = maxZ - minZ;
-        lightPosInc.mul(distance);
+
+        lightPositionIncrement.mul(distance);
+
         Vector3f lightPosition = new Vector3f();
+
         lightPosition.set(centroid);
-        lightPosition.add(lightPosInc);
+        lightPosition.add(lightPositionIncrement);
 
         updateLightViewMatrix(lightDirection, lightPosition);
 
         updateLightProjectionMatrix();
     }
 
+    /**
+     * Update light view matrix.
+     *
+     * @param lightDirection light direction
+     * @param lightPosition  light position
+     */
     private void updateLightViewMatrix(Vector3f lightDirection, Vector3f lightPosition) {
         float lightAngleX = (float) Math.toDegrees(Math.acos(lightDirection.z));
         float lightAngleY = (float) Math.toDegrees(Math.asin(lightDirection.x));
@@ -94,6 +131,9 @@ public class ShadowCascade {
                 lightViewMatrix);
     }
 
+    /**
+     * Update light projection matrix.
+     */
     private void updateLightProjectionMatrix() {
         float minX = Float.MAX_VALUE;
         float maxX = -Float.MIN_VALUE;
@@ -104,19 +144,21 @@ public class ShadowCascade {
 
         for (int i = 0; i < FRUSTUM_CORNERS; i++) {
             Vector3f corner = frustumCorners[i];
-            tmpVec.set(corner, 1);
-            tmpVec.mul(lightViewMatrix);
-            minX = Math.min(tmpVec.x, minX);
-            maxX = Math.max(tmpVec.x, maxX);
-            minY = Math.min(tmpVec.y, minY);
-            maxY = Math.max(tmpVec.y, maxY);
-            minZ = Math.min(tmpVec.z, minZ);
-            maxZ = Math.max(tmpVec.z, maxZ);
+
+            temporalVector.set(corner, 1);
+            temporalVector.mul(lightViewMatrix);
+
+            minX = Math.min(temporalVector.x, minX);
+            maxX = Math.max(temporalVector.x, maxX);
+            minY = Math.min(temporalVector.y, minY);
+            maxY = Math.max(temporalVector.y, maxY);
+            minZ = Math.min(temporalVector.z, minZ);
+            maxZ = Math.max(temporalVector.z, maxZ);
         }
 
-        float distz = maxZ - minZ;
+        float zDistance = maxZ - minZ;
 
-        orthogonalProjectionMatrix.setOrtho(minX, maxX, minY, maxY, 0, distz);
+        orthogonalProjectionMatrix.setOrtho(minX, maxX, minY, maxY, 0, zDistance);
     }
 
 }

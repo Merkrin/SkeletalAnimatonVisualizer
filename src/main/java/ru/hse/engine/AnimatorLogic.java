@@ -86,7 +86,7 @@ public class AnimatorLogic implements Logic {
         MeshedItem item;
 
         if (SETTINGS.isModelAnimated()) {
-            item = AnimatedMeshLoader.loadAnimGameItem(SETTINGS.getPathToModel(), SETTINGS.getPathToTexture());
+            item = AnimatedMeshLoader.loadAnimatedItem(SETTINGS.getPathToModel(), SETTINGS.getPathToTexture());
 
             animation = ((AnimatedItem) item).getCurrentAnimation();
         } else {
